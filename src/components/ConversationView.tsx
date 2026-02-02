@@ -18,8 +18,20 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
   const [isLoading, setIsLoading] = useState(false)
   const [transcript, setTranscript] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesRef = useRef<Message[]>([])
+  const messageIdCounter = useRef(0)
   const ttsRef = useRef(typeof window !== 'undefined' ? getTextToSpeech() : null)
   const sttRef = useRef(typeof window !== 'undefined' ? getSpeechToText() : null)
+
+  // Generate unique message ID
+  const generateMessageId = () => {
+    return `${Date.now()}-${messageIdCounter.current++}`
+  }
+
+  // Keep messagesRef in sync with messages state
+  useEffect(() => {
+    messagesRef.current = messages
+  }, [messages])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -98,10 +110,10 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
   }
 
   const handleSendText = useCallback(async (text: string) => {
-    if (!text.trim() || isLoading) return
+    if (!text.trim()) return
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: generateMessageId(),
       role: 'user',
       content: text.trim(),
       timestamp: new Date(),
@@ -114,7 +126,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
     if (lowerText.includes('i am done') || lowerText.includes("i'm done") ||
         lowerText.includes('that is enough') || lowerText.includes("that's enough")) {
       const goodbyeMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: generateMessageId(),
         role: 'assistant',
         content: 'Great conversation! You did very well today. See you next time!',
         timestamp: new Date(),
@@ -132,7 +144,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [...messages, userMessage],
+          messages: [...messagesRef.current, userMessage],
           topic,
           difficultyLevel: settings.difficultyLevel,
         }),
@@ -144,7 +156,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
 
       const data = await response.json()
       const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
+        id: generateMessageId(),
         role: 'assistant',
         content: data.content,
         timestamp: new Date(),
@@ -155,7 +167,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
       console.error('API error:', error)
       // Fallback response if API fails
       const fallbackResponse: Message = {
-        id: (Date.now() + 1).toString(),
+        id: generateMessageId(),
         role: 'assistant',
         content: 'I apologize, I had trouble understanding. Could you please repeat that? Please try again.',
         timestamp: new Date(),
@@ -165,7 +177,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
     } finally {
       setIsLoading(false)
     }
-  }, [speakText, onEndSession, messages, topic, settings.difficultyLevel, isLoading])
+  }, [speakText, onEndSession, topic, settings.difficultyLevel])
 
   return (
     <main className="flex min-h-screen flex-col bg-white">

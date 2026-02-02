@@ -18,7 +18,14 @@ export function getUserSettings(): UserSettings {
   }
   const stored = localStorage.getItem(STORAGE_KEYS.SETTINGS)
   if (stored) {
-    return JSON.parse(stored)
+    try {
+      return JSON.parse(stored)
+    } catch (error) {
+      console.error('Failed to parse user settings:', error)
+      // Clear corrupted data
+      localStorage.removeItem(STORAGE_KEYS.SETTINGS)
+      return getDefaultSettings()
+    }
   }
   return getDefaultSettings()
 }
@@ -43,10 +50,17 @@ export function getUserProgress(): UserProgress {
   }
   const stored = localStorage.getItem(STORAGE_KEYS.PROGRESS)
   if (stored) {
-    const progress = JSON.parse(stored)
-    return {
-      ...progress,
-      lastSessionDate: progress.lastSessionDate ? new Date(progress.lastSessionDate) : null,
+    try {
+      const progress = JSON.parse(stored)
+      return {
+        ...progress,
+        lastSessionDate: progress.lastSessionDate ? new Date(progress.lastSessionDate) : null,
+      }
+    } catch (error) {
+      console.error('Failed to parse user progress:', error)
+      // Clear corrupted data
+      localStorage.removeItem(STORAGE_KEYS.PROGRESS)
+      return getDefaultProgress()
     }
   }
   return getDefaultProgress()
@@ -96,7 +110,17 @@ interface StoredSession {
 export function getSessions(): StoredSession[] {
   if (typeof window === 'undefined') return []
   const stored = localStorage.getItem(STORAGE_KEYS.SESSIONS)
-  return stored ? JSON.parse(stored) : []
+  if (stored) {
+    try {
+      return JSON.parse(stored)
+    } catch (error) {
+      console.error('Failed to parse sessions:', error)
+      // Clear corrupted data
+      localStorage.removeItem(STORAGE_KEYS.SESSIONS)
+      return []
+    }
+  }
+  return []
 }
 
 export function saveSession(session: {

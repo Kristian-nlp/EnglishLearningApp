@@ -77,7 +77,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
             <input
               type="range"
               min="0.5"
-              max="1.5"
+              max="2.0"
               step="0.1"
               value={speed}
               onChange={(e) => setSpeed(parseFloat(e.target.value))}
