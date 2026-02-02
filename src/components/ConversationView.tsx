@@ -15,6 +15,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
   const [messages, setMessages] = useState<Message[]>([])
   const [isListening, setIsListening] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [transcript, setTranscript] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const ttsRef = useRef(typeof window !== 'undefined' ? getTextToSpeech() : null)
@@ -96,8 +97,8 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
     }
   }
 
-  const handleSendText = useCallback((text: string) => {
-    if (!text.trim()) return
+  const handleSendText = useCallback(async (text: string) => {
+    if (!text.trim() || isLoading) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -124,18 +125,47 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
       return
     }
 
-    // Simulate AI response (will be replaced with actual API call in Phase 2)
-    setTimeout(() => {
+    // Call the AI API
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...messages, userMessage],
+          topic,
+          difficultyLevel: settings.difficultyLevel,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to get response')
+      }
+
+      const data = await response.json()
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'That sounds interesting! Can you tell me more about that? Please describe it in a few sentences.',
+        content: data.content,
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, aiResponse])
       speakText(aiResponse.content)
-    }, 1000)
-  }, [speakText, onEndSession])
+    } catch (error) {
+      console.error('API error:', error)
+      // Fallback response if API fails
+      const fallbackResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'I apologize, I had trouble understanding. Could you please repeat that? Please try again.',
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, fallbackResponse])
+      speakText(fallbackResponse.content)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [speakText, onEndSession, messages, topic, settings.difficultyLevel, isLoading])
 
   return (
     <main className="flex min-h-screen flex-col bg-white">
@@ -182,7 +212,14 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
               </div>
             </div>
           ))}
-          {isSpeaking && (
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="rounded-lg bg-gray-100 px-4 py-3 text-gray-500">
+                <span className="animate-pulse">Thinking...</span>
+              </div>
+            </div>
+          )}
+          {isSpeaking && !isLoading && (
             <div className="flex justify-start">
               <div className="rounded-lg bg-gray-100 px-4 py-3 text-gray-500">
                 <span className="animate-pulse">Speaking...</span>
@@ -223,19 +260,19 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
               type="text"
               value={transcript}
               onChange={(e) => setTranscript(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSendText(transcript)}
+              onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSendText(transcript)}
               placeholder="Type your message or click the microphone to speak..."
               className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              disabled={isListening}
+              disabled={isListening || isLoading}
             />
 
             {/* Send Button */}
             <button
               onClick={() => handleSendText(transcript)}
-              disabled={!transcript.trim() || isListening}
+              disabled={!transcript.trim() || isListening || isLoading}
               className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
-              Send
+              {isLoading ? '...' : 'Send'}
             </button>
           </div>
 
