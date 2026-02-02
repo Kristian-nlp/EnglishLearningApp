@@ -1,20 +1,24 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { Message } from '@/types'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { Message, UserSettings } from '@/types'
+import { getTextToSpeech, getSpeechToText } from '@/lib/voice'
 
 interface ConversationViewProps {
   topic: string
+  settings: UserSettings
   onEndSession: () => void
   onChangeTopic: () => void
 }
 
-export function ConversationView({ topic, onEndSession, onChangeTopic }: ConversationViewProps) {
+export function ConversationView({ topic, settings, onEndSession, onChangeTopic }: ConversationViewProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [isListening, setIsListening] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [transcript, setTranscript] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const ttsRef = useRef(typeof window !== 'undefined' ? getTextToSpeech() : null)
+  const sttRef = useRef(typeof window !== 'undefined' ? getSpeechToText() : null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -23,6 +27,19 @@ export function ConversationView({ topic, onEndSession, onChangeTopic }: Convers
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Speak text using TTS
+  const speakText = useCallback(async (text: string) => {
+    if (!ttsRef.current) return
+    setIsSpeaking(true)
+    try {
+      await ttsRef.current.speak(text, settings.accent, settings.speakingSpeed)
+    } catch (error) {
+      console.error('TTS error:', error)
+    } finally {
+      setIsSpeaking(false)
+    }
+  }, [settings.accent, settings.speakingSpeed])
 
   // Initialize conversation with a greeting
   useEffect(() => {
@@ -33,30 +50,53 @@ export function ConversationView({ topic, onEndSession, onChangeTopic }: Convers
       timestamp: new Date(),
     }
     setMessages([initialMessage])
-  }, [topic])
+
+    // Speak the initial greeting
+    speakText(initialMessage.content)
+  }, [topic, speakText])
 
   const handleStartListening = () => {
+    if (!sttRef.current) {
+      console.error('Speech recognition not available')
+      return
+    }
+
+    // Stop any ongoing speech
+    if (ttsRef.current) {
+      ttsRef.current.stop()
+    }
+
     setIsListening(true)
     setTranscript('')
-    // Speech recognition will be implemented with Web Speech API or OpenAI Whisper
+
+    sttRef.current.start(
+      (text, isFinal) => {
+        setTranscript(text)
+        if (isFinal) {
+          // Auto-stop after final result
+          handleStopListening(text)
+        }
+      },
+      (error) => {
+        console.error('STT error:', error)
+        setIsListening(false)
+      }
+    )
   }
 
-  const handleStopListening = () => {
+  const handleStopListening = (finalTranscript?: string) => {
+    if (sttRef.current) {
+      sttRef.current.stop()
+    }
     setIsListening(false)
-    // Process the transcript
-    if (transcript) {
-      const userMessage: Message = {
-        id: Date.now().toString(),
-        role: 'user',
-        content: transcript,
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, userMessage])
-      // TODO: Send to AI and get response
+
+    const textToSend = finalTranscript || transcript
+    if (textToSend.trim()) {
+      handleSendText(textToSend)
     }
   }
 
-  const handleSendText = (text: string) => {
+  const handleSendText = useCallback((text: string) => {
     if (!text.trim()) return
 
     const userMessage: Message = {
@@ -68,7 +108,23 @@ export function ConversationView({ topic, onEndSession, onChangeTopic }: Convers
     setMessages((prev) => [...prev, userMessage])
     setTranscript('')
 
-    // Simulate AI response (will be replaced with actual API call)
+    // Check for session end phrases
+    const lowerText = text.toLowerCase()
+    if (lowerText.includes('i am done') || lowerText.includes("i'm done") ||
+        lowerText.includes('that is enough') || lowerText.includes("that's enough")) {
+      const goodbyeMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Great conversation! You did very well today. See you next time!',
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, goodbyeMessage])
+      speakText(goodbyeMessage.content)
+      setTimeout(onEndSession, 3000)
+      return
+    }
+
+    // Simulate AI response (will be replaced with actual API call in Phase 2)
     setTimeout(() => {
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -77,8 +133,9 @@ export function ConversationView({ topic, onEndSession, onChangeTopic }: Convers
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, aiResponse])
+      speakText(aiResponse.content)
     }, 1000)
-  }
+  }, [speakText, onEndSession])
 
   return (
     <main className="flex min-h-screen flex-col bg-white">
@@ -150,7 +207,7 @@ export function ConversationView({ topic, onEndSession, onChangeTopic }: Convers
           <div className="flex gap-3">
             {/* Microphone Button */}
             <button
-              onClick={isListening ? handleStopListening : handleStartListening}
+              onClick={isListening ? () => handleStopListening() : handleStartListening}
               className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${
                 isListening
                   ? 'bg-red-500 text-white hover:bg-red-600'

@@ -3,6 +3,34 @@
 
 import { EnglishAccent } from '@/types'
 
+// Web Speech API type declarations
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number
+  results: SpeechRecognitionResultList
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string
+}
+
+interface SpeechRecognitionInterface extends EventTarget {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  onresult: ((event: SpeechRecognitionEvent) => void) | null
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null
+  onend: (() => void) | null
+  start(): void
+  stop(): void
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition?: new () => SpeechRecognitionInterface
+    webkitSpeechRecognition?: new () => SpeechRecognitionInterface
+  }
+}
+
 // Accent to voice mapping for Web Speech API
 const accentVoiceMap: Record<EnglishAccent, string[]> = {
   american: ['en-US', 'en_US'],
@@ -102,19 +130,17 @@ export class TextToSpeech {
 
 // Speech-to-Text using Web Speech API
 export class SpeechToText {
-  private recognition: SpeechRecognition | null = null
+  private recognition: SpeechRecognitionInterface | null = null
   private isListening = false
   private onResultCallback: ((transcript: string, isFinal: boolean) => void) | null = null
   private onErrorCallback: ((error: string) => void) | null = null
 
   constructor() {
     if (typeof window !== 'undefined') {
-      const SpeechRecognition =
-        (window as unknown as { SpeechRecognition?: typeof window.SpeechRecognition }).SpeechRecognition ||
-        (window as unknown as { webkitSpeechRecognition?: typeof window.SpeechRecognition }).webkitSpeechRecognition
+      const SpeechRecognitionConstructor = window.SpeechRecognition || window.webkitSpeechRecognition
 
-      if (SpeechRecognition) {
-        this.recognition = new SpeechRecognition()
+      if (SpeechRecognitionConstructor) {
+        this.recognition = new SpeechRecognitionConstructor()
         this.setupRecognition()
       }
     }

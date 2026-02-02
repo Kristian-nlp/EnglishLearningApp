@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { topics } from '@/lib/topics'
-import { DifficultyLevel, EnglishAccent } from '@/types'
+import { DifficultyLevel, EnglishAccent, UserSettings } from '@/types'
 
 interface TopicSelectionProps {
-  onSelectTopic: (topic: string) => void
+  onSelectTopic: (topic: string, settings: UserSettings) => void
   onBack: () => void
 }
 
@@ -17,9 +17,19 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
 
   const difficulties: DifficultyLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1']
 
+  const getSettings = (): UserSettings => ({
+    difficultyLevel: difficulty,
+    speakingSpeed: speed,
+    accent: accent,
+  })
+
+  const handleTopicSelect = (topic: string) => {
+    onSelectTopic(topic, getSettings())
+  }
+
   const handleCustomTopicSubmit = () => {
     if (customTopic.trim()) {
-      onSelectTopic(customTopic.trim())
+      onSelectTopic(customTopic.trim(), getSettings())
     }
   }
 
@@ -104,7 +114,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
           {topics.map((topic) => (
             <button
               key={topic.id}
-              onClick={() => onSelectTopic(topic.name)}
+              onClick={() => handleTopicSelect(topic.name)}
               className="rounded-lg border border-gray-200 p-4 text-left transition-all hover:border-blue-500 hover:shadow-md"
             >
               <div className="mb-2 text-2xl">{topic.icon}</div>

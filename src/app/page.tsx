@@ -3,10 +3,23 @@
 import { useState } from 'react'
 import { TopicSelection } from '@/components/TopicSelection'
 import { ConversationView } from '@/components/ConversationView'
+import { UserSettings } from '@/types'
+
+const defaultSettings: UserSettings = {
+  difficultyLevel: 'A2',
+  speakingSpeed: 1.0,
+  accent: 'american',
+}
 
 export default function Home() {
   const [started, setStarted] = useState(false)
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null)
+  const [settings, setSettings] = useState<UserSettings>(defaultSettings)
+
+  const handleTopicSelect = (topic: string, newSettings: UserSettings) => {
+    setSelectedTopic(topic)
+    setSettings(newSettings)
+  }
 
   if (!started) {
     return (
@@ -31,7 +44,7 @@ export default function Home() {
   if (!selectedTopic) {
     return (
       <TopicSelection
-        onSelectTopic={setSelectedTopic}
+        onSelectTopic={handleTopicSelect}
         onBack={() => setStarted(false)}
       />
     )
@@ -40,6 +53,7 @@ export default function Home() {
   return (
     <ConversationView
       topic={selectedTopic}
+      settings={settings}
       onEndSession={() => {
         setSelectedTopic(null)
         setStarted(false)
