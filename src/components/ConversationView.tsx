@@ -152,7 +152,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
           handleSendText(finalText)
         }
       },
-      2000 // 2 second silence threshold
+      3000 // 3 second silence threshold
     )
   }
 
