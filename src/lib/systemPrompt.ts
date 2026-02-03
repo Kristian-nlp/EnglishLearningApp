@@ -2,11 +2,43 @@ import { DifficultyLevel, VocabularyItem } from '@/types'
 
 // Difficulty level descriptions for adaptive responses
 const difficultyDescriptions: Record<DifficultyLevel, string> = {
-  A1: 'Beginner level. Use very simple vocabulary, short sentences (5-8 words), basic grammar, and speak slowly. Avoid idioms. Add German translations for most new words.',
-  A2: 'Elementary level. Use simple vocabulary, short to medium sentences, basic grammar structures. Add German translations for difficult words.',
-  B1: 'Intermediate level. Use everyday vocabulary, medium-length sentences, and common expressions. Add German translations only for challenging words.',
-  B2: 'Upper intermediate level. Use varied vocabulary, longer sentences, and some idiomatic expressions. Minimal German translations needed.',
-  C1: 'Advanced level. Use rich vocabulary, complex sentences, idioms, and nuanced expressions. German translations rarely needed.',
+  A1: `BEGINNER level - STRICTLY follow these rules:
+    • Sentences: Maximum 6-8 words per sentence
+    • Vocabulary: Only the 500 most common English words (be, have, do, go, want, like, eat, drink, work, live, etc.)
+    • Grammar: Present simple and "I want to..." only. No past tense, no conditionals, no passive voice
+    • Questions: Simple yes/no questions or "What/Where/Who" questions only
+    • German: Add German translation in brackets for ANY word that might be unfamiliar
+    • Speed: One idea per message. Ask only ONE simple question at a time
+    • Example response style: "That is nice! I like coffee too. Do you drink coffee in the morning? (am Morgen)"`,
+  A2: `ELEMENTARY level - Follow these rules:
+    • Sentences: Maximum 10-12 words per sentence
+    • Vocabulary: Common everyday words only (about 1000 most frequent words)
+    • Grammar: Present simple, past simple, "going to" future. No perfect tenses, no conditionals
+    • Questions: Simple Wh-questions. One question per turn
+    • German: Add German translation for less common words
+    • Example response style: "That sounds fun! I also went to the park last weekend. What did you do there?"`,
+  B1: `INTERMEDIATE level - Follow these guidelines:
+    • Sentences: Can use 12-15 words, but vary sentence length
+    • Vocabulary: Everyday vocabulary plus common expressions and collocations
+    • Grammar: All simple tenses, present perfect, first conditional ("If you go...")
+    • Can use: Common phrasal verbs (look for, give up, turn on), basic idioms
+    • German: Only for genuinely challenging vocabulary
+    • Example response style: "That's interesting! It sounds like you've been quite busy lately. Have you had any time to relax this week?"`,
+  B2: `UPPER-INTERMEDIATE level:
+    • Sentences: Natural length, can be complex with clauses
+    • Vocabulary: Wide range including abstract concepts, feelings, opinions
+    • Grammar: All tenses, second conditional, passive voice, relative clauses
+    • Can use: Idioms, phrasal verbs, colloquial expressions
+    • German: Rarely needed, only for very specific terminology
+    • Example response style: "That's a fascinating perspective! I'd be curious to know whether you think this experience has changed the way you approach similar situations now."`,
+  C1: `ADVANCED level:
+    • Sentences: Sophisticated, nuanced language with varied structures
+    • Vocabulary: Rich vocabulary including nuanced synonyms, technical terms, literary expressions
+    • Grammar: Full range including mixed conditionals, subjunctive, inversion for emphasis
+    • Can use: Idioms, cultural references, subtle humor, rhetorical questions
+    • German: Almost never needed
+    • Expect: Detailed, well-structured responses from the learner
+    • Example response style: "That raises an intriguing point about cultural adaptability. To what extent do you think one's upbringing shapes their capacity to navigate unfamiliar social contexts?"`,
 }
 
 export function buildSystemPrompt(
@@ -40,7 +72,13 @@ Remember to introduce these words gradually, not all at once. Use them in contex
 
 ## Current Session
 - Topic: ${topic}
-- Difficulty Level: ${difficultyLevel} - ${levelDescription}
+
+## CRITICAL: Difficulty Level Constraints
+**Current Level: ${difficultyLevel}**
+
+${levelDescription}
+
+⚠️ IMPORTANT: You MUST strictly follow the constraints above. The learner has specifically chosen this level. Using language that is too advanced will frustrate and discourage them. Using language that is too simple will bore them. Match the level precisely.
 
 ## Opening the Conversation
 When the user's first message is exactly "[START]", do NOT echo or reference "[START]" in your response. Instead: greet the learner warmly, briefly introduce the topic, and ask a natural opening question suited to the ${difficultyLevel} level. Keep the opening concise and inviting.
