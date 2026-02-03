@@ -163,7 +163,7 @@ export class OpenAITextToSpeech {
   private currentAudio: HTMLAudioElement | null = null
   private isSpeakingFlag = false
 
-  async speak(text: string, _accent: EnglishAccent = 'american', speed: number = 1.0, gender: VoiceGender = 'female'): Promise<void> {
+  async speak(text: string, accent: EnglishAccent = 'american', speed: number = 1.0, gender: VoiceGender = 'female'): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
         // Stop any current speech
@@ -175,7 +175,7 @@ export class OpenAITextToSpeech {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ text, gender, speed }),
+          body: JSON.stringify({ text, gender, accent, speed }),
         })
 
         if (!response.ok) {

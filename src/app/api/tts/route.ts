@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { VoiceGender } from '@/types'
+import { EnglishAccent, VoiceGender } from '@/types'
 
 // Lazy initialization to avoid build-time errors
 let openai: OpenAI | null = null
@@ -14,24 +14,36 @@ function getOpenAI(): OpenAI {
   return openai
 }
 
-// Map gender to OpenAI voices
-// Female: nova (warm), shimmer (expressive), alloy (neutral)
-// Male: onyx (deep), fable (British-ish), echo (neutral)
-const voiceMap: Record<VoiceGender, OpenAI.Audio.SpeechCreateParams['voice']> = {
-  female: 'nova',
-  male: 'onyx',
+// Map accent + gender to OpenAI voices
+// OpenAI voices: alloy, echo, fable, onyx, nova, shimmer
+// - nova: warm female, American-sounding
+// - shimmer: expressive female
+// - fable: warm, British/storytelling quality
+// - onyx: deep male
+// - echo: neutral male
+// - alloy: neutral
+const voiceMap: Record<EnglishAccent, Record<VoiceGender, OpenAI.Audio.SpeechCreateParams['voice']>> = {
+  american: {
+    female: 'nova',
+    male: 'onyx',
+  },
+  british: {
+    female: 'fable',
+    male: 'echo',
+  },
 }
 
 interface TTSRequest {
   text: string
   gender?: VoiceGender
+  accent?: EnglishAccent
   speed?: number
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: TTSRequest = await request.json()
-    const { text, gender = 'female', speed = 1.0 } = body
+    const { text, gender = 'female', accent = 'american', speed = 1.0 } = body
 
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
@@ -50,9 +62,12 @@ export async function POST(request: NextRequest) {
     // Clamp speed to OpenAI's supported range (0.25 to 4.0)
     const clampedSpeed = Math.max(0.25, Math.min(4.0, speed))
 
+    // Select voice based on accent and gender
+    const voice = voiceMap[accent]?.[gender] ?? voiceMap.american.female
+
     const mp3 = await getOpenAI().audio.speech.create({
       model: 'tts-1',
-      voice: voiceMap[gender],
+      voice,
       input: text,
       speed: clampedSpeed,
     })
