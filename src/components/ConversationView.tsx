@@ -327,8 +327,8 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl px-6 py-8">
+      <div className="flex flex-1 flex-col overflow-y-auto">
+        <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center px-6 py-8">
           <div className="space-y-6">
             {messages.map((message) => (
               <div
