@@ -89,6 +89,9 @@ export default function Home() {
 
           {/* Cautionary Note */}
           <div className="mt-16 text-sm leading-relaxed text-gray-400">
+            <p className="mb-3 font-medium text-gray-500">
+              This is a prototype.
+            </p>
             <p>
               This app is built for friends and family. You&apos;ve probably found it through my website or I&apos;ve shared a link with you directly. If it&apos;s not working well for you, if it feels clunky or frustrating, I&apos;d rather you stop using it than stick with something that annoys you.
             </p>
