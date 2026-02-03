@@ -127,10 +127,12 @@ export function ProgressDashboard({ onBack, onStartTopic }: ProgressDashboardPro
                       <h4 className="text-sm font-semibold text-red-800">{rule}</h4>
                       <span className="text-xs text-red-600">{data.count}x</span>
                     </div>
-                    <div className="mt-1">
-                      <p className="text-xs text-red-500 line-through">{data.examples[data.examples.length - 1].original}</p>
-                      <p className="text-xs text-green-700">{data.examples[data.examples.length - 1].corrected}</p>
-                    </div>
+                    {data.examples.length > 0 && (
+                      <div className="mt-1">
+                        <p className="text-xs text-red-500 line-through">{data.examples[data.examples.length - 1].original}</p>
+                        <p className="text-xs text-green-700">{data.examples[data.examples.length - 1].corrected}</p>
+                      </div>
+                    )}
                   </div>
                 ))}
             </div>

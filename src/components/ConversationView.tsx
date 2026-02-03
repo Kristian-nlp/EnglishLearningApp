@@ -30,6 +30,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
   const sessionStartRef = useRef(new Date())
   const ttsRef = useRef(typeof window !== 'undefined' ? getTextToSpeech() : null)
   const sttRef = useRef(typeof window !== 'undefined' ? getSpeechToText() : null)
+  const endSessionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Generate unique message ID
   const generateMessageId = () => {
@@ -139,6 +140,10 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
 
   // Persist session data then hand off to parent
   const handleEndSession = useCallback(() => {
+    if (endSessionTimeoutRef.current) {
+      clearTimeout(endSessionTimeoutRef.current)
+      endSessionTimeoutRef.current = null
+    }
     saveSession({
       id: sessionIdRef.current,
       topic,
@@ -175,7 +180,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
       }
       setMessages((prev) => [...prev, goodbyeMessage])
       speakText(goodbyeMessage.content)
-      setTimeout(handleEndSession, 3000)
+      endSessionTimeoutRef.current = setTimeout(handleEndSession, 3000)
       return
     }
 
