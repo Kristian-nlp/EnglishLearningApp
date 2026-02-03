@@ -51,10 +51,10 @@ function assessResponse(text: string): AssessmentResult {
     score -= 0.6
   } else if (wordCount <= 5) {
     score -= 0.2
-  } else if (wordCount >= 15) {
-    score += 0.3
   } else if (wordCount >= 25) {
     score += 0.5
+  } else if (wordCount >= 15) {
+    score += 0.3
   }
 
   // Check for struggle signals

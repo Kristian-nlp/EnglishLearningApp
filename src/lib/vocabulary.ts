@@ -92,7 +92,7 @@ export const topicVocabulary: TopicVocabulary[] = [
       { word: 'nutritious', germanTranslation: 'nahrhaft', difficultyLevel: 'B1', example: 'I try to eat nutritious meals.' },
       // B2 Level
       { word: 'delicacy', germanTranslation: 'Delikatesse', difficultyLevel: 'B2', example: 'Sushi is considered a delicacy.' },
-      { word: 'palate', germanTranslation: 'Gaumen', difficultyLevel: 'B2', example: 'This dish has a refined palate.' },
+      { word: 'palate', germanTranslation: 'Gaumen', difficultyLevel: 'B2', example: 'You need a refined palate to appreciate this dish.' },
       // C1 Level
       { word: 'culinary', germanTranslation: 'kulinarisch', difficultyLevel: 'C1', example: 'I have a passion for culinary arts.' },
       { word: 'gastronomic', germanTranslation: 'gastronomisch', difficultyLevel: 'C1', example: 'It was a gastronomic experience.' },

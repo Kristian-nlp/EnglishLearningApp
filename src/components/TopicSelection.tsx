@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { topics } from '@/lib/topics'
 import { DifficultyLevel, EnglishAccent, UserSettings } from '@/types'
-import { saveCustomTopic } from '@/lib/db'
+import { saveCustomTopic, getCustomTopics, removeCustomTopic, getUserSettings, saveUserSettings } from '@/lib/db'
 
 interface TopicSelectionProps {
   onSelectTopic: (topic: string, settings: UserSettings) => void
@@ -15,8 +15,18 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
   const [speed, setSpeed] = useState(1.0)
   const [accent, setAccent] = useState<EnglishAccent>('american')
   const [customTopic, setCustomTopic] = useState('')
+  const [savedCustomTopics, setSavedCustomTopics] = useState<string[]>([])
 
   const difficulties: DifficultyLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1']
+
+  // Load persisted settings and custom topics on first render
+  useEffect(() => {
+    const saved = getUserSettings()
+    setDifficulty(saved.difficultyLevel)
+    setSpeed(saved.speakingSpeed)
+    setAccent(saved.accent)
+    setSavedCustomTopics(getCustomTopics())
+  }, [])
 
   const getSettings = (): UserSettings => ({
     difficultyLevel: difficulty,
@@ -25,6 +35,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
   })
 
   const handleTopicSelect = (topic: string) => {
+    saveUserSettings(getSettings())
     onSelectTopic(topic, getSettings())
   }
 
@@ -32,8 +43,16 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
     if (customTopic.trim()) {
       const topic = customTopic.trim()
       saveCustomTopic(topic)
+      setSavedCustomTopics((prev) => (prev.includes(topic) ? prev : [...prev, topic]))
+      setCustomTopic('')
+      saveUserSettings(getSettings())
       onSelectTopic(topic, getSettings())
     }
+  }
+
+  const handleRemoveCustomTopic = (topic: string) => {
+    removeCustomTopic(topic)
+    setSavedCustomTopics((prev) => prev.filter((t) => t !== topic))
   }
 
   return (
@@ -132,6 +151,36 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
             </button>
           ))}
         </div>
+
+        {/* Previously saved custom topics */}
+        {savedCustomTopics.length > 0 && (
+          <div className="mb-8">
+            <h3 className="mb-3 text-lg font-semibold text-gray-900">Your Topics</h3>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {savedCustomTopics.map((topic) => (
+                <div key={topic} className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                  <div className="flex items-start justify-between">
+                    <button
+                      onClick={() => handleTopicSelect(topic)}
+                      aria-label={`Start conversation about ${topic}`}
+                      className="flex-1 text-left"
+                    >
+                      <h3 className="mb-1 font-semibold text-gray-900">{topic}</h3>
+                      <p className="text-sm text-blue-600">Custom topic</p>
+                    </button>
+                    <button
+                      onClick={() => handleRemoveCustomTopic(topic)}
+                      aria-label={`Remove custom topic ${topic}`}
+                      className="ml-2 text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Custom Topic */}
         <div className="rounded-lg bg-gray-50 p-6">

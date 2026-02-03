@@ -188,7 +188,8 @@ export class SpeechToText {
 
   start(
     onResult: (transcript: string, isFinal: boolean) => void,
-    onError?: (error: string) => void
+    onError?: (error: string) => void,
+    lang?: string
   ): boolean {
     if (!this.recognition) {
       onError?.('Speech recognition not supported in this browser')
@@ -197,6 +198,10 @@ export class SpeechToText {
 
     if (this.isListening) {
       return true
+    }
+
+    if (lang) {
+      this.recognition.lang = lang
     }
 
     this.onResultCallback = onResult

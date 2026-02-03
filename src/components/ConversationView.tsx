@@ -31,6 +31,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
   const ttsRef = useRef(typeof window !== 'undefined' ? getTextToSpeech() : null)
   const sttRef = useRef(typeof window !== 'undefined' ? getSpeechToText() : null)
   const endSessionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const accentLangMap: Record<string, string> = { american: 'en-US', british: 'en-GB', australian: 'en-AU' }
 
   // Generate unique message ID
   const generateMessageId = () => {
@@ -70,19 +71,52 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
     }
   }, [settings.accent, settings.speakingSpeed])
 
-  // Initialize conversation with a greeting
+  // Fetch AI-generated greeting on mount
   useEffect(() => {
-    const initialMessage: Message = {
-      id: '1',
-      role: 'assistant',
-      content: `Hello! I am excited to talk with you about "${topic}". Let us have a nice conversation. What do you usually do when you think about ${topic.toLowerCase()}? Please answer in one or two sentences.`,
-      timestamp: new Date(),
-    }
-    setMessages([initialMessage])
+    let cancelled = false
+    setIsLoading(true)
 
-    // Speak the initial greeting
-    speakText(initialMessage.content)
-  }, [topic, speakText])
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: '[START]' }],
+        topic,
+        difficultyLevel: settings.difficultyLevel,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return
+        if (data.progress?.learned?.length) {
+          data.progress.learned.forEach((word: string) => addLearnedWord(word))
+        }
+        const greeting: Message = {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: data.content,
+          timestamp: new Date(),
+        }
+        setMessages([greeting])
+        speakText(data.content)
+      })
+      .catch(() => {
+        if (cancelled) return
+        const fallback: Message = {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: `Hello! I am Emma. Let us talk about "${topic}". Could you tell me a little about your interest in this topic? Please answer in one or two sentences.`,
+          timestamp: new Date(),
+        }
+        setMessages([fallback])
+        speakText(fallback.content)
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+
+    return () => { cancelled = true }
+  }, [topic, settings.difficultyLevel, speakText])
 
   const handleStartListening = () => {
     if (!sttRef.current) {
@@ -109,7 +143,8 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
       (error) => {
         console.error('STT error:', error)
         setIsListening(false)
-      }
+      },
+      accentLangMap[settings.accent]
     )
   }
 
@@ -184,14 +219,15 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
       return
     }
 
-    // Call the AI API
+    // Call the AI API — window history to last 20 messages to avoid context bloat
     setIsLoading(true)
     try {
+      const historyToSend = [...messagesRef.current, userMessage].slice(-20)
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [...messagesRef.current, userMessage],
+          messages: historyToSend,
           topic,
           difficultyLevel: effectiveLevel,
         }),
