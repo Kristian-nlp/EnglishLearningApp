@@ -10,6 +10,7 @@ const defaultSettings: UserSettings = {
   difficultyLevel: 'A2',
   speakingSpeed: 1.0,
   accent: 'american',
+  voiceGender: 'female',
 }
 
 export default function Home() {
@@ -39,29 +40,51 @@ export default function Home() {
 
   if (!started) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white p-8">
-        <div className="max-w-2xl text-center">
-          <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-600 shadow-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="white" className="h-10 w-10">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 013.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 4.5c-2.392 0-4.744.175-7.043.513C3.373 5.746 2.25 7.14 2.25 8.741v6.018z" />
+      <main className="flex min-h-screen flex-col items-center justify-center bg-white px-6">
+        <div className="w-full max-w-md text-center">
+          {/* Logo/Icon */}
+          <div className="mx-auto mb-10 flex h-16 w-16 items-center justify-center rounded-full border border-gray-200">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="h-8 w-8 text-gray-900"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"
+              />
             </svg>
           </div>
-          <h1 className="mb-4 text-4xl font-bold text-gray-900">English Learning App</h1>
-          <p className="mb-8 text-lg text-gray-600">
-            Practice your English through natural conversation. Designed for German speakers at all
-            levels from A1 to C1.
+
+          {/* Title */}
+          <h1 className="mb-4 text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
+            Practice English
+          </h1>
+
+          {/* Subtitle */}
+          <p className="mb-12 text-lg leading-relaxed text-gray-500">
+            Improve your English through natural conversation.
+            Designed for German speakers at all levels.
           </p>
+
+          {/* Primary CTA */}
           <button
             onClick={() => setStarted(true)}
-            className="rounded-lg bg-blue-600 px-8 py-4 text-xl font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="mb-4 w-full rounded-full bg-gray-900 px-8 py-4 text-base font-medium text-white transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
           >
-            Start
+            Start practicing
           </button>
+
+          {/* Secondary CTA */}
           <button
             onClick={() => setShowDashboard(true)}
-            className="mt-4 block w-full rounded-lg border border-gray-300 px-8 py-3 text-base font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="w-full rounded-full border border-gray-200 px-8 py-4 text-base font-medium text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
           >
-            My Progress
+            View my progress
           </button>
         </div>
       </main>

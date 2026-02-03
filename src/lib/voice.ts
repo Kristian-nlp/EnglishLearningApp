@@ -1,7 +1,7 @@
 // Voice utilities for Text-to-Speech and Speech-to-Text
 // Uses Web Speech API as primary, with OpenAI as fallback
 
-import { EnglishAccent } from '@/types'
+import { EnglishAccent, VoiceGender } from '@/types'
 
 // Web Speech API type declarations
 interface SpeechRecognitionEvent extends Event {
@@ -62,21 +62,52 @@ export class TextToSpeech {
     }
   }
 
-  private findVoice(accent: EnglishAccent): SpeechSynthesisVoice | null {
+  private findVoice(accent: EnglishAccent, gender: VoiceGender = 'female'): SpeechSynthesisVoice | null {
     const preferredLangs = accentVoiceMap[accent]
 
+    // Common voice name patterns indicating gender
+    const malePatterns = ['male', 'daniel', 'james', 'david', 'tom', 'aaron', 'guy', 'oliver', 'lee', 'rishi', 'thomas', 'gordon', 'reed']
+    const femalePatterns = ['female', 'samantha', 'karen', 'moira', 'fiona', 'victoria', 'kate', 'tessa', 'serena', 'susan', 'zoe', 'allison', 'ava']
+
+    const genderPatterns = gender === 'male' ? malePatterns : femalePatterns
+    const oppositePatterns = gender === 'male' ? femalePatterns : malePatterns
+
+    // First try to find a voice matching both accent and gender
     for (const lang of preferredLangs) {
-      const voice = this.voices.find(
+      const matchingVoices = this.voices.filter(
         (v) => v.lang.includes(lang) || v.lang.replace('-', '_').includes(lang)
       )
-      if (voice) return voice
+
+      // Try to find one matching the requested gender
+      const genderMatch = matchingVoices.find((v) => {
+        const nameLower = v.name.toLowerCase()
+        return genderPatterns.some(pattern => nameLower.includes(pattern))
+      })
+      if (genderMatch) return genderMatch
+
+      // If no explicit gender match, avoid opposite gender
+      const neutralVoice = matchingVoices.find((v) => {
+        const nameLower = v.name.toLowerCase()
+        return !oppositePatterns.some(pattern => nameLower.includes(pattern))
+      })
+      if (neutralVoice) return neutralVoice
+
+      // Last resort: any voice with matching accent
+      if (matchingVoices.length > 0) return matchingVoices[0]
     }
 
-    // Fallback to any English voice
-    return this.voices.find((v) => v.lang.startsWith('en')) || null
+    // Fallback to any English voice with matching gender
+    const englishVoices = this.voices.filter((v) => v.lang.startsWith('en'))
+    const genderMatch = englishVoices.find((v) => {
+      const nameLower = v.name.toLowerCase()
+      return genderPatterns.some(pattern => nameLower.includes(pattern))
+    })
+    if (genderMatch) return genderMatch
+
+    return englishVoices[0] || null
   }
 
-  async speak(text: string, accent: EnglishAccent = 'american', speed: number = 1.0): Promise<void> {
+  async speak(text: string, accent: EnglishAccent = 'american', speed: number = 1.0, gender: VoiceGender = 'female'): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.synth) {
         reject(new Error('Speech synthesis not supported'))
@@ -87,7 +118,7 @@ export class TextToSpeech {
       this.stop()
 
       const utterance = new SpeechSynthesisUtterance(text)
-      const voice = this.findVoice(accent)
+      const voice = this.findVoice(accent, gender)
 
       if (voice) {
         utterance.voice = voice

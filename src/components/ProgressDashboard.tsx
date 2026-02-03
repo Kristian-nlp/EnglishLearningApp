@@ -66,30 +66,45 @@ export function ProgressDashboard({ onBack, onStartTopic }: ProgressDashboardPro
   const suggested = getSuggestedTopics(progress)
 
   return (
-    <main className="min-h-screen bg-white p-8">
-      <div className="mx-auto max-w-3xl">
-        <button onClick={onBack} aria-label="Go back" className="mb-6 text-gray-600 hover:text-gray-900">
-          ← Back
-        </button>
-
-        <h1 className="mb-8 text-3xl font-bold text-gray-900">My Progress</h1>
-
-        {/* Stats row */}
-        <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <StatCard label="Sessions" value={stats.totalSessions} />
-          <StatCard label="Total Minutes" value={stats.totalMinutes} />
-          <StatCard label="Topics Practiced" value={stats.uniqueTopics.length} />
-          <StatCard label="Avg Min / Session" value={stats.averageMinutesPerSession} />
+    <main className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="border-b border-gray-100">
+        <div className="mx-auto flex max-w-3xl items-center px-6 py-5">
+          <button
+            onClick={onBack}
+            aria-label="Go back"
+            className="mr-4 text-gray-400 transition-colors hover:text-gray-900"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+          </button>
+          <h1 className="text-lg font-medium text-gray-900">Your Progress</h1>
         </div>
+      </header>
+
+      <div className="mx-auto max-w-3xl px-6 py-10">
+        {/* Stats row */}
+        <section className="mb-16">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <StatCard label="Sessions" value={stats.totalSessions} />
+            <StatCard label="Minutes" value={stats.totalMinutes} />
+            <StatCard label="Topics" value={stats.uniqueTopics.length} />
+            <StatCard label="Avg. Min" value={stats.averageMinutesPerSession} />
+          </div>
+        </section>
 
         {/* Vocabulary learned */}
-        <Section title="Vocabulary Practiced">
+        <Section title="Words Learned">
           {progress.learnedWords.length === 0 ? (
-            <p className="text-sm text-gray-500">No words tracked yet. They will appear as you practice.</p>
+            <p className="text-sm text-gray-400">No words tracked yet. They will appear as you practice.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {progress.learnedWords.map((word) => (
-                <span key={word} className="rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-800">
+                <span
+                  key={word}
+                  className="rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-700"
+                >
                   {word}
                 </span>
               ))}
@@ -100,37 +115,46 @@ export function ProgressDashboard({ onBack, onStartTopic }: ProgressDashboardPro
         {/* Difficult phrases */}
         <Section title="Phrases to Review">
           {progress.difficultPhrases.length === 0 ? (
-            <p className="text-sm text-gray-500">No difficult phrases logged yet.</p>
+            <p className="text-sm text-gray-400">No difficult phrases logged yet.</p>
           ) : (
-            <ul className="space-y-2">
+            <div className="space-y-2">
               {progress.difficultPhrases.map((phrase) => (
-                <li key={phrase} className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-900">
+                <div
+                  key={phrase}
+                  className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+                >
                   {phrase}
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </Section>
 
         {/* Grammar patterns */}
-        <Section title="Grammar Patterns to Watch">
+        <Section title="Grammar Patterns">
           {Object.keys(grammarErrors).length === 0 ? (
-            <p className="text-sm text-gray-500">No grammar patterns tracked yet. They will appear as you practice.</p>
+            <p className="text-sm text-gray-400">No grammar patterns tracked yet. They will appear as you practice.</p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {Object.entries(grammarErrors)
                 .sort((a, b) => b[1].count - a[1].count)
                 .slice(0, 5)
                 .map(([rule, data]) => (
-                  <div key={rule} className="rounded-lg border border-red-100 bg-red-50 p-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-semibold text-red-800">{rule}</h4>
-                      <span className="text-xs text-red-600">{data.count}x</span>
+                  <div key={rule} className="rounded-xl border border-gray-100 p-4">
+                    <div className="mb-2 flex items-center justify-between">
+                      <h4 className="text-sm font-medium text-gray-900">{rule}</h4>
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+                        {data.count}x
+                      </span>
                     </div>
                     {data.examples.length > 0 && (
-                      <div className="mt-1">
-                        <p className="text-xs text-red-500 line-through">{data.examples[data.examples.length - 1].original}</p>
-                        <p className="text-xs text-green-700">{data.examples[data.examples.length - 1].corrected}</p>
+                      <div className="space-y-1">
+                        <p className="text-sm text-red-400 line-through">
+                          {data.examples[data.examples.length - 1].original}
+                        </p>
+                        <p className="text-sm text-emerald-600">
+                          {data.examples[data.examples.length - 1].corrected}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -142,11 +166,14 @@ export function ProgressDashboard({ onBack, onStartTopic }: ProgressDashboardPro
         {/* Topics practiced */}
         <Section title="Topics Practiced">
           {stats.uniqueTopics.length === 0 ? (
-            <p className="text-sm text-gray-500">Start a conversation to see topics here.</p>
+            <p className="text-sm text-gray-400">Start a conversation to see topics here.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {stats.uniqueTopics.map((name) => (
-                <span key={name} className="rounded-full bg-green-50 px-3 py-1 text-sm text-green-800">
+                <span
+                  key={name}
+                  className="rounded-full bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700"
+                >
                   {name}
                 </span>
               ))}
@@ -156,9 +183,9 @@ export function ProgressDashboard({ onBack, onStartTopic }: ProgressDashboardPro
 
         {/* Suggested topics */}
         {suggested.length > 0 && (
-          <Section title="Suggested Topics">
-            <p className="mb-3 text-sm text-gray-600">
-              Try one of these topics you haven&apos;t practiced yet:
+          <Section title="Try Next">
+            <p className="mb-4 text-sm text-gray-500">
+              Topics you haven&apos;t practiced yet:
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               {suggested.slice(0, 4).map((topic) => (
@@ -166,11 +193,13 @@ export function ProgressDashboard({ onBack, onStartTopic }: ProgressDashboardPro
                   key={topic.id}
                   onClick={() => onStartTopic(topic.name)}
                   aria-label={`Start conversation about ${topic.name}`}
-                  className="rounded-lg border border-gray-200 p-3 text-left transition-all hover:border-blue-500 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="group rounded-xl border border-gray-200 p-4 text-left transition-all hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
                 >
-                  <div className="mb-1 text-lg">{topic.icon}</div>
-                  <h4 className="text-sm font-semibold text-gray-900">{topic.name}</h4>
-                  <p className="text-xs text-gray-500">{topic.description}</p>
+                  <div className="mb-2 text-xl">{topic.icon}</div>
+                  <h4 className="text-sm font-medium text-gray-900 group-hover:text-sky-600">
+                    {topic.name}
+                  </h4>
+                  <p className="mt-1 text-xs text-gray-500">{topic.description}</p>
                 </button>
               ))}
             </div>
@@ -185,18 +214,20 @@ export function ProgressDashboard({ onBack, onStartTopic }: ProgressDashboardPro
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 text-center">
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
-      <p className="text-xs text-gray-500">{label}</p>
+    <div className="rounded-xl border border-gray-100 bg-gray-50 p-5 text-center">
+      <p className="text-2xl font-semibold text-gray-900">{value}</p>
+      <p className="mt-1 text-xs text-gray-500">{label}</p>
     </div>
   )
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mb-8">
-      <h2 className="mb-3 text-lg font-semibold text-gray-900">{title}</h2>
+    <section className="mb-12">
+      <h2 className="mb-6 text-sm font-medium uppercase tracking-wide text-gray-400">
+        {title}
+      </h2>
       {children}
-    </div>
+    </section>
   )
 }

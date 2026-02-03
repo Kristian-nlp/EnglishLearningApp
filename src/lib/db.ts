@@ -2,7 +2,7 @@
 // Currently uses localStorage for demo purposes
 // Can be replaced with Prisma when database is configured
 
-import { UserSettings, UserProgress, Message, DifficultyLevel, EnglishAccent } from '@/types'
+import { UserSettings, UserProgress, Message, DifficultyLevel, EnglishAccent, VoiceGender } from '@/types'
 
 const STORAGE_KEYS = {
   USER: 'english_app_user',
@@ -42,6 +42,7 @@ function getDefaultSettings(): UserSettings {
     difficultyLevel: 'A2' as DifficultyLevel,
     speakingSpeed: 1.0,
     accent: 'american' as EnglishAccent,
+    voiceGender: 'female' as VoiceGender,
   }
 }
 

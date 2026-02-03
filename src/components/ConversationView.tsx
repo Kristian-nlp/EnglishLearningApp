@@ -63,13 +63,13 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
     if (!ttsRef.current) return
     setIsSpeaking(true)
     try {
-      await ttsRef.current.speak(text, settings.accent, settings.speakingSpeed)
+      await ttsRef.current.speak(text, settings.accent, settings.speakingSpeed, settings.voiceGender)
     } catch (error) {
       console.error('TTS error:', error)
     } finally {
       setIsSpeaking(false)
     }
-  }, [settings.accent, settings.speakingSpeed])
+  }, [settings.accent, settings.speakingSpeed, settings.voiceGender])
 
   // Fetch AI-generated greeting on mount
   useEffect(() => {
@@ -105,7 +105,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
         const fallback: Message = {
           id: generateMessageId(),
           role: 'assistant',
-          content: `Hello! I am Emma. Let us talk about "${topic}". Could you tell me a little about your interest in this topic? Please answer in one or two sentences.`,
+          content: `Hello! Let us talk about "${topic}". Could you tell me a little about your interest in this topic?`,
           timestamp: new Date(),
         }
         setMessages([fallback])
@@ -281,30 +281,36 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
   return (
     <main className="flex min-h-screen flex-col bg-white">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white px-6 py-4">
-        <div className="mx-auto flex max-w-4xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">Conversation</h1>
-              <p className="text-sm text-gray-600">Topic: {topic}</p>
-            </div>
-            <DifficultyBadge level={effectiveLevel} signal={difficultySignal} />
-          </div>
-          <div className="flex gap-3">
+      <header className="border-b border-gray-100 bg-white">
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-4">
             <button
               onClick={onChangeTopic}
               aria-label="Change topic"
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="text-gray-400 transition-colors hover:text-gray-900"
             >
-              Change Topic
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
             </button>
+            <div>
+              <h1 className="text-base font-medium text-gray-900">{topic}</h1>
+              <div className="flex items-center gap-2">
+                <DifficultyBadge level={effectiveLevel} signal={difficultySignal} />
+                {isSpeaking && (
+                  <span className="text-xs text-sky-500">Speaking...</span>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
             <button
               onClick={isPaused ? handleResume : handlePause}
               aria-label={isPaused ? 'Resume conversation' : 'Pause conversation'}
-              className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+              className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                 isPaused
-                  ? 'border-green-500 bg-green-50 text-green-700 hover:bg-green-100'
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  ? 'bg-sky-50 text-sky-600 hover:bg-sky-100'
+                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
               }`}
             >
               {isPaused ? 'Resume' : 'Pause'}
@@ -312,81 +318,83 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
             <button
               onClick={handleEndSession}
               aria-label="End session"
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+              className="rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
             >
-              End Session
+              End
             </button>
           </div>
         </div>
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-4">
-        <div className="mx-auto max-w-4xl space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-3xl px-6 py-8">
+          <div className="space-y-6">
+            {messages.map((message) => (
               <div
-                className={`max-w-[80%] rounded-lg px-4 py-3 ${
-                  message.role === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-900'
-                }`}
+                key={message.id}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <p className="whitespace-pre-wrap">{message.content}</p>
+                <div
+                  className={`max-w-[85%] ${
+                    message.role === 'user'
+                      ? 'rounded-2xl rounded-br-md bg-gray-900 px-5 py-3 text-white'
+                      : 'rounded-2xl rounded-bl-md border border-gray-100 bg-gray-50 px-5 py-3 text-gray-900'
+                  }`}
+                >
+                  <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                </div>
               </div>
-            </div>
-          ))}
-          {isLoading && (
-            <div className="flex justify-start" role="status" aria-live="polite">
-              <div className="rounded-lg bg-gray-100 px-4 py-3 text-gray-500">
-                <span className="animate-pulse">Thinking...</span>
+            ))}
+            {isLoading && (
+              <div className="flex justify-start" role="status" aria-live="polite">
+                <div className="rounded-2xl rounded-bl-md border border-gray-100 bg-gray-50 px-5 py-3">
+                  <div className="flex items-center gap-1">
+                    <div className="h-2 w-2 animate-bounce rounded-full bg-gray-300" style={{ animationDelay: '0ms' }} />
+                    <div className="h-2 w-2 animate-bounce rounded-full bg-gray-300" style={{ animationDelay: '150ms' }} />
+                    <div className="h-2 w-2 animate-bounce rounded-full bg-gray-300" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
-          {isSpeaking && !isLoading && (
-            <div className="flex justify-start" role="status" aria-live="polite">
-              <div className="rounded-lg bg-gray-100 px-4 py-3 text-gray-500">
-                <span className="animate-pulse">Speaking...</span>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+            )}
+            <div ref={messagesEndRef} />
+          </div>
         </div>
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-200 bg-white px-6 py-4">
-        <div className="mx-auto max-w-4xl">
+      <div className="border-t border-gray-100 bg-white">
+        <div className="mx-auto max-w-3xl px-6 py-4">
           {/* Paused banner */}
           {isPaused && (
-            <div className="mb-3 rounded-lg bg-amber-50 p-3 text-center text-amber-800" role="status" aria-live="polite">
-              <p className="text-sm font-medium">Session paused. Press Resume to continue.</p>
+            <div className="mb-4 rounded-xl bg-gray-50 p-4 text-center" role="status" aria-live="polite">
+              <p className="text-sm text-gray-500">Session paused. Press Resume to continue.</p>
             </div>
           )}
 
           {/* Live transcript display */}
           {isListening && (
-            <div className="mb-3 rounded-lg bg-blue-50 p-3 text-blue-800" role="status" aria-live="polite">
-              <p className="text-sm font-medium">Listening...</p>
-              {transcript && <p className="mt-1">{transcript}</p>}
+            <div className="mb-4 rounded-xl bg-sky-50 p-4" role="status" aria-live="polite">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 animate-pulse rounded-full bg-sky-500" />
+                <span className="text-sm font-medium text-sky-700">Listening...</span>
+              </div>
+              {transcript && <p className="mt-2 text-sm text-sky-900">{transcript}</p>}
             </div>
           )}
 
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
             {/* Microphone Button */}
             <button
               onClick={isListening ? () => handleStopListening() : handleStartListening}
               disabled={isPaused}
               aria-label={isListening ? 'Stop recording' : 'Start recording'}
-              className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${
+              className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full transition-all ${
                 isPaused
-                  ? 'cursor-not-allowed bg-gray-50 text-gray-400'
+                  ? 'cursor-not-allowed bg-gray-100 text-gray-300'
                   : isListening
-                    ? 'bg-red-500 text-white hover:bg-red-600'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 hover:bg-red-600'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               <MicrophoneIcon isListening={isListening} />
@@ -398,9 +406,9 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
               value={transcript}
               onChange={(e) => setTranscript(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !isLoading && !isPaused && handleSendText(transcript)}
-              placeholder={isPaused ? 'Session is paused...' : 'Type your message or click the microphone to speak...'}
+              placeholder={isPaused ? 'Session is paused...' : 'Type your message...'}
               aria-label="Message input"
-              className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50"
+              className="flex-1 rounded-xl border border-gray-200 px-5 py-3 text-sm text-gray-900 placeholder-gray-400 transition-colors hover:border-gray-300 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 disabled:bg-gray-50 disabled:text-gray-400"
               disabled={isListening || isLoading || isPaused}
             />
 
@@ -409,14 +417,16 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
               onClick={() => handleSendText(transcript)}
               disabled={!transcript.trim() || isListening || isLoading || isPaused}
               aria-label="Send message"
-              className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+              className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gray-900 text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
             >
-              {isLoading ? '...' : 'Send'}
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+              </svg>
             </button>
           </div>
 
-          <p className="mt-3 text-center text-sm text-gray-500">
-            Say "I am done" or "That is enough for today" to end the session
+          <p className="mt-4 text-center text-xs text-gray-400">
+            Say &quot;I&apos;m done&quot; or &quot;That&apos;s enough&quot; to end the session
           </p>
         </div>
       </div>
@@ -432,7 +442,7 @@ function MicrophoneIcon({ isListening }: { isListening: boolean }) {
       viewBox="0 0 24 24"
       strokeWidth={1.5}
       stroke="currentColor"
-      className={`h-6 w-6 ${isListening ? 'animate-pulse' : ''}`}
+      className={`h-5 w-5 ${isListening ? 'animate-pulse' : ''}`}
     >
       <path
         strokeLinecap="round"
@@ -450,16 +460,18 @@ function DifficultyBadge({
   level: DifficultyLevel
   signal: 'confident' | 'struggling' | 'neutral'
 }) {
-  const bgColor =
-    signal === 'confident' ? 'bg-green-100 text-green-800' :
-    signal === 'struggling' ? 'bg-amber-100 text-amber-800' :
-    'bg-gray-100 text-gray-700'
+  const styles =
+    signal === 'confident'
+      ? 'text-emerald-600'
+      : signal === 'struggling'
+        ? 'text-amber-600'
+        : 'text-gray-500'
 
   const arrow = signal === 'confident' ? ' ↑' : signal === 'struggling' ? ' ↓' : ''
 
   return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${bgColor}`}>
-      {level}{arrow}
+    <span className={`text-xs font-medium ${styles}`}>
+      Level {level}{arrow}
     </span>
   )
 }
