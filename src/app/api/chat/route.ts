@@ -54,10 +54,26 @@ export async function POST(request: NextRequest) {
       max_tokens: 500,
     })
 
-    const responseContent = completion.choices[0]?.message?.content || ''
+    const rawContent = completion.choices[0]?.message?.content || ''
+
+    // Extract structured corrections appended by the system prompt
+    let corrections: { original: string; corrected: string; rule: string }[] = []
+    let content = rawContent
+    const correctionsIdx = rawContent.lastIndexOf('[CORRECTIONS:')
+    if (correctionsIdx !== -1) {
+      const jsonStr = rawContent.slice(correctionsIdx + '[CORRECTIONS:'.length).replace(/\]\s*$/, '').trim()
+      try {
+        const parsed = JSON.parse(jsonStr)
+        corrections = parsed.items || []
+      } catch (error) {
+        console.error('Failed to parse corrections block:', error)
+      }
+      content = rawContent.slice(0, correctionsIdx).trim()
+    }
 
     return NextResponse.json({
-      content: responseContent,
+      content,
+      corrections,
       usage: completion.usage,
     })
   } catch (error) {

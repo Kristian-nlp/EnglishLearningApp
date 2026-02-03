@@ -53,3 +53,9 @@ export interface ConversationSession {
   startedAt: Date
   endedAt: Date | null
 }
+
+export interface GrammarCorrection {
+  original: string
+  corrected: string
+  rule: string
+}

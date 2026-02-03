@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
   PROGRESS: 'english_app_progress',
   SESSIONS: 'english_app_sessions',
   CUSTOM_TOPICS: 'english_app_custom_topics',
+  GRAMMAR_ERRORS: 'english_app_grammar_errors',
 }
 
 // User settings
@@ -211,6 +212,49 @@ export function updateVocabularyProgress(word: string): void {
     }
   }
   saveUserProgress(progress)
+}
+
+// Grammar error tracking
+export interface GrammarErrorPattern {
+  count: number
+  lastSeen: string
+  examples: { original: string; corrected: string }[]
+}
+
+export function getGrammarErrors(): Record<string, GrammarErrorPattern> {
+  if (typeof window === 'undefined') return {}
+  const stored = localStorage.getItem(STORAGE_KEYS.GRAMMAR_ERRORS)
+  if (stored) {
+    try {
+      return JSON.parse(stored)
+    } catch (error) {
+      console.error('Failed to parse grammar errors:', error)
+      localStorage.removeItem(STORAGE_KEYS.GRAMMAR_ERRORS)
+      return {}
+    }
+  }
+  return {}
+}
+
+export function trackGrammarError(correction: { original: string; corrected: string; rule: string }): void {
+  if (typeof window === 'undefined') return
+  const errors = getGrammarErrors()
+  const key = correction.rule || 'Other'
+  if (errors[key]) {
+    errors[key].count++
+    errors[key].lastSeen = new Date().toISOString()
+    errors[key].examples.push({ original: correction.original, corrected: correction.corrected })
+    if (errors[key].examples.length > 3) {
+      errors[key].examples = errors[key].examples.slice(-3)
+    }
+  } else {
+    errors[key] = {
+      count: 1,
+      lastSeen: new Date().toISOString(),
+      examples: [{ original: correction.original, corrected: correction.corrected }],
+    }
+  }
+  localStorage.setItem(STORAGE_KEYS.GRAMMAR_ERRORS, JSON.stringify(errors))
 }
 
 export function clearAllData(): void {

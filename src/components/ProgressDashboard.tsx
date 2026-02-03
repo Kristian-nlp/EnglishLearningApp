@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getUserProgress, getSessions } from '@/lib/db'
+import { getUserProgress, getSessions, getGrammarErrors, GrammarErrorPattern } from '@/lib/db'
 import { topics } from '@/lib/topics'
 import { UserProgress } from '@/types'
 
@@ -51,12 +51,14 @@ export function ProgressDashboard({ onBack, onStartTopic }: ProgressDashboardPro
     uniqueTopics: [],
     averageMinutesPerSession: 0,
   })
+  const [grammarErrors, setGrammarErrors] = useState<Record<string, GrammarErrorPattern>>({})
 
   useEffect(() => {
     const p = getUserProgress()
     const s = getSessions()
     setProgress(p)
     setStats(computeStats(s))
+    setGrammarErrors(getGrammarErrors())
   }, [])
 
   if (!progress) return null
@@ -107,6 +109,31 @@ export function ProgressDashboard({ onBack, onStartTopic }: ProgressDashboardPro
                 </li>
               ))}
             </ul>
+          )}
+        </Section>
+
+        {/* Grammar patterns */}
+        <Section title="Grammar Patterns to Watch">
+          {Object.keys(grammarErrors).length === 0 ? (
+            <p className="text-sm text-gray-500">No grammar patterns tracked yet. They will appear as you practice.</p>
+          ) : (
+            <div className="space-y-2">
+              {Object.entries(grammarErrors)
+                .sort((a, b) => b[1].count - a[1].count)
+                .slice(0, 5)
+                .map(([rule, data]) => (
+                  <div key={rule} className="rounded-lg border border-red-100 bg-red-50 p-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold text-red-800">{rule}</h4>
+                      <span className="text-xs text-red-600">{data.count}x</span>
+                    </div>
+                    <div className="mt-1">
+                      <p className="text-xs text-red-500 line-through">{data.examples[data.examples.length - 1].original}</p>
+                      <p className="text-xs text-green-700">{data.examples[data.examples.length - 1].corrected}</p>
+                    </div>
+                  </div>
+                ))}
+            </div>
           )}
         </Section>
 

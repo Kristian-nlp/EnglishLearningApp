@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { DifficultyLevel, Message, UserSettings } from '@/types'
 import { getTextToSpeech, getSpeechToText } from '@/lib/voice'
 import { assessDifficulty } from '@/lib/difficultyAdapter'
-import { saveSession, markTopicCompleted } from '@/lib/db'
+import { saveSession, markTopicCompleted, trackGrammarError } from '@/lib/db'
 import { topics } from '@/lib/topics'
 
 interface ConversationViewProps {
@@ -197,6 +197,14 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
       }
 
       const data = await response.json()
+
+      // Persist any grammar corrections returned by the API
+      if (data.corrections?.length) {
+        data.corrections.forEach((c: { original: string; corrected: string; rule: string }) => {
+          trackGrammarError(c)
+        })
+      }
+
       const aiResponse: Message = {
         id: generateMessageId(),
         role: 'assistant',
