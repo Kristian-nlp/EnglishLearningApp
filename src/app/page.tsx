@@ -86,6 +86,23 @@ export default function Home() {
               View progress
             </button>
           </div>
+
+          {/* Cautionary Note */}
+          <div className="mt-16 text-sm leading-relaxed text-gray-400">
+            <p>
+              This app is built for friends and family. You&apos;ve probably found it through my website or I&apos;ve shared a link with you directly. If it&apos;s not working well for you, if it feels clunky or frustrating, I&apos;d rather you stop using it than stick with something that annoys you.
+            </p>
+            <button
+              onClick={() => {
+                const user = 'kristian.normen'
+                const domain = 'icloud.com'
+                window.location.href = `mailto:${user}@${domain}`
+              }}
+              className="mt-2 text-gray-400 underline decoration-gray-300 underline-offset-2 transition-colors hover:text-gray-600"
+            >
+              Get in touch
+            </button>
+          </div>
         </div>
       </main>
     )
