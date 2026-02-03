@@ -228,12 +228,17 @@ export class OpenAITextToSpeech {
   }
 }
 
-// Speech-to-Text using Web Speech API
+// Speech-to-Text using Web Speech API with silence detection
 export class SpeechToText {
   private recognition: SpeechRecognitionInterface | null = null
   private isListening = false
   private onResultCallback: ((transcript: string, isFinal: boolean) => void) | null = null
   private onErrorCallback: ((error: string) => void) | null = null
+  private onSilenceCallback: (() => void) | null = null
+  private silenceTimeout: ReturnType<typeof setTimeout> | null = null
+  private silenceDelay = 2000 // 2 seconds of silence before auto-send
+  private hasSpoken = false
+  private accumulatedTranscript = ''
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -243,6 +248,27 @@ export class SpeechToText {
         this.recognition = new SpeechRecognitionConstructor()
         this.setupRecognition()
       }
+    }
+  }
+
+  private clearSilenceTimeout(): void {
+    if (this.silenceTimeout) {
+      clearTimeout(this.silenceTimeout)
+      this.silenceTimeout = null
+    }
+  }
+
+  private startSilenceTimeout(): void {
+    this.clearSilenceTimeout()
+
+    // Only start silence detection if user has actually spoken something
+    if (this.hasSpoken && this.accumulatedTranscript.trim()) {
+      this.silenceTimeout = setTimeout(() => {
+        // User has been silent for silenceDelay ms after speaking
+        if (this.onSilenceCallback && this.accumulatedTranscript.trim()) {
+          this.onSilenceCallback()
+        }
+      }, this.silenceDelay)
     }
   }
 
@@ -266,22 +292,33 @@ export class SpeechToText {
         }
       }
 
+      // Reset silence timer whenever we get speech
+      this.clearSilenceTimeout()
+
       if (this.onResultCallback) {
         if (finalTranscript) {
-          this.onResultCallback(finalTranscript, true)
+          this.hasSpoken = true
+          this.accumulatedTranscript += finalTranscript
+          this.onResultCallback(this.accumulatedTranscript, true)
+          // Start silence detection after final result
+          this.startSilenceTimeout()
         } else if (interimTranscript) {
-          this.onResultCallback(interimTranscript, false)
+          this.hasSpoken = true
+          // Show accumulated + current interim
+          this.onResultCallback(this.accumulatedTranscript + interimTranscript, false)
         }
       }
     }
 
     this.recognition.onerror = (event) => {
+      this.clearSilenceTimeout()
       if (this.onErrorCallback) {
         this.onErrorCallback(event.error)
       }
     }
 
     this.recognition.onend = () => {
+      this.clearSilenceTimeout()
       this.isListening = false
     }
   }
@@ -289,7 +326,9 @@ export class SpeechToText {
   start(
     onResult: (transcript: string, isFinal: boolean) => void,
     onError?: (error: string) => void,
-    lang?: string
+    lang?: string,
+    onSilence?: () => void,
+    silenceDelayMs?: number
   ): boolean {
     if (!this.recognition) {
       onError?.('Speech recognition not supported in this browser')
@@ -304,8 +343,18 @@ export class SpeechToText {
       this.recognition.lang = lang
     }
 
+    // Reset state for new session
+    this.hasSpoken = false
+    this.accumulatedTranscript = ''
+    this.clearSilenceTimeout()
+
+    if (silenceDelayMs) {
+      this.silenceDelay = silenceDelayMs
+    }
+
     this.onResultCallback = onResult
     this.onErrorCallback = onError || null
+    this.onSilenceCallback = onSilence || null
 
     try {
       this.recognition.start()
@@ -318,10 +367,15 @@ export class SpeechToText {
   }
 
   stop(): void {
+    this.clearSilenceTimeout()
     if (this.recognition && this.isListening) {
       this.recognition.stop()
       this.isListening = false
     }
+  }
+
+  getTranscript(): string {
+    return this.accumulatedTranscript
   }
 
   isActive(): boolean {
