@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { TopicSelection } from '@/components/TopicSelection'
 import { ConversationView } from '@/components/ConversationView'
+import { ProgressDashboard } from '@/components/ProgressDashboard'
 import { UserSettings } from '@/types'
 
 const defaultSettings: UserSettings = {
@@ -13,12 +14,27 @@ const defaultSettings: UserSettings = {
 
 export default function Home() {
   const [started, setStarted] = useState(false)
+  const [showDashboard, setShowDashboard] = useState(false)
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null)
   const [settings, setSettings] = useState<UserSettings>(defaultSettings)
 
   const handleTopicSelect = (topic: string, newSettings: UserSettings) => {
     setSelectedTopic(topic)
     setSettings(newSettings)
+  }
+
+  // Dashboard: suggested topic tapped → go straight into conversation
+  if (showDashboard) {
+    return (
+      <ProgressDashboard
+        onBack={() => setShowDashboard(false)}
+        onStartTopic={(topic) => {
+          setShowDashboard(false)
+          setSelectedTopic(topic)
+          setStarted(true)
+        }}
+      />
+    )
   }
 
   if (!started) {
@@ -35,6 +51,12 @@ export default function Home() {
             className="rounded-lg bg-blue-600 px-8 py-4 text-xl font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             Start
+          </button>
+          <button
+            onClick={() => setShowDashboard(true)}
+            className="mt-4 block w-full rounded-lg border border-gray-300 px-8 py-3 text-base font-medium text-gray-700 transition-colors hover:bg-gray-50"
+          >
+            My Progress
           </button>
         </div>
       </main>

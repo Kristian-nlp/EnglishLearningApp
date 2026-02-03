@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { DifficultyLevel, Message, UserSettings } from '@/types'
 import { getTextToSpeech, getSpeechToText } from '@/lib/voice'
 import { assessDifficulty } from '@/lib/difficultyAdapter'
+import { saveSession, markTopicCompleted } from '@/lib/db'
+import { topics } from '@/lib/topics'
 
 interface ConversationViewProps {
   topic: string
@@ -23,6 +25,8 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesRef = useRef<Message[]>([])
   const messageIdCounter = useRef(0)
+  const sessionIdRef = useRef(`session-${Date.now()}`)
+  const sessionStartRef = useRef(new Date())
   const ttsRef = useRef(typeof window !== 'undefined' ? getTextToSpeech() : null)
   const sttRef = useRef(typeof window !== 'undefined' ? getSpeechToText() : null)
 
@@ -119,6 +123,20 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
     }
   }
 
+  // Persist session data then hand off to parent
+  const handleEndSession = useCallback(() => {
+    saveSession({
+      id: sessionIdRef.current,
+      topic,
+      messages: messagesRef.current,
+      startedAt: sessionStartRef.current,
+      endedAt: new Date(),
+    })
+    const topicData = topics.find((t) => t.name === topic)
+    if (topicData) markTopicCompleted(topicData.id)
+    onEndSession()
+  }, [topic, onEndSession])
+
   const handleSendText = useCallback(async (text: string) => {
     if (!text.trim()) return
 
@@ -143,7 +161,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
       }
       setMessages((prev) => [...prev, goodbyeMessage])
       speakText(goodbyeMessage.content)
-      setTimeout(onEndSession, 3000)
+      setTimeout(handleEndSession, 3000)
       return
     }
 
@@ -187,7 +205,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
     } finally {
       setIsLoading(false)
     }
-  }, [speakText, onEndSession, topic, effectiveLevel])
+  }, [speakText, handleEndSession, topic, effectiveLevel])
 
   return (
     <main className="flex min-h-screen flex-col bg-white">
@@ -209,7 +227,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
               Change Topic
             </button>
             <button
-              onClick={onEndSession}
+              onClick={handleEndSession}
               className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
             >
               End Session
