@@ -94,7 +94,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
                       onClick={() => setDifficulty(level)}
                       aria-pressed={difficulty === level}
                       aria-label={`Difficulty level ${level}`}
-                      className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
+                      className={`rounded-full px-6 py-2.5 text-sm font-medium transition-all ${
                         difficulty === level
                           ? 'bg-gray-900 text-white'
                           : 'border border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-900'
@@ -243,7 +243,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
                   onClick={handleCustomTopicSubmit}
                   disabled={!customTopic.trim()}
                   aria-label="Start conversation with custom topic"
-                  className="rounded-lg bg-gray-900 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                  className="rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
                 >
                   Start
                 </button>
