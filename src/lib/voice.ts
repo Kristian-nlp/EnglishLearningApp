@@ -35,7 +35,6 @@ declare global {
 const accentVoiceMap: Record<EnglishAccent, string[]> = {
   american: ['en-US', 'en_US'],
   british: ['en-GB', 'en_GB'],
-  australian: ['en-AU', 'en_AU'],
 }
 
 // Text-to-Speech using Web Speech API
