@@ -178,7 +178,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
                   key={topic.id}
                   onClick={() => handleTopicSelect(topic.name)}
                   aria-label={`Start conversation about ${topic.name}`}
-                  className="group rounded-xl border-2 border-gray-200 px-6 py-5 text-left transition-all hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+                  className="group rounded-xl border-2 border-gray-200 p-8 text-left transition-all hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
                 >
                   <div className="mb-3 text-2xl">{topic.icon}</div>
                   <h3 className="mb-2 font-medium text-gray-900 group-hover:text-sky-600">
@@ -195,7 +195,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
                 {savedCustomTopics.map((topic) => (
                   <div
                     key={topic}
-                    className="group flex items-center justify-between rounded-xl border-2 border-sky-200 bg-sky-50 px-6 py-5 transition-all hover:border-sky-300"
+                    className="group flex items-center justify-between rounded-xl border-2 border-sky-200 bg-sky-50 p-8 transition-all hover:border-sky-300"
                   >
                     <button
                       onClick={() => handleTopicSelect(topic)}
