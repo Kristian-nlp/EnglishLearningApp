@@ -56,24 +56,38 @@ export async function POST(request: NextRequest) {
 
     const rawContent = completion.choices[0]?.message?.content || ''
 
-    // Extract structured corrections appended by the system prompt
-    let corrections: { original: string; corrected: string; rule: string }[] = []
+    // Strip PROGRESS block first — it appears after CORRECTIONS in the response
     let content = rawContent
-    const correctionsIdx = rawContent.lastIndexOf('[CORRECTIONS:')
+    let progress: { learned: string[]; difficult: string[] } = { learned: [], difficult: [] }
+    const progressIdx = content.lastIndexOf('[PROGRESS:')
+    if (progressIdx !== -1) {
+      const progressJsonStr = content.slice(progressIdx + '[PROGRESS:'.length).replace(/\]\s*$/, '').trim()
+      try {
+        progress = JSON.parse(progressJsonStr)
+      } catch (error) {
+        console.error('Failed to parse progress block:', error)
+      }
+      content = content.slice(0, progressIdx).trim()
+    }
+
+    // Strip CORRECTIONS block
+    let corrections: { original: string; corrected: string; rule: string }[] = []
+    const correctionsIdx = content.lastIndexOf('[CORRECTIONS:')
     if (correctionsIdx !== -1) {
-      const jsonStr = rawContent.slice(correctionsIdx + '[CORRECTIONS:'.length).replace(/\]\s*$/, '').trim()
+      const jsonStr = content.slice(correctionsIdx + '[CORRECTIONS:'.length).replace(/\]\s*$/, '').trim()
       try {
         const parsed = JSON.parse(jsonStr)
         corrections = parsed.items || []
       } catch (error) {
         console.error('Failed to parse corrections block:', error)
       }
-      content = rawContent.slice(0, correctionsIdx).trim()
+      content = content.slice(0, correctionsIdx).trim()
     }
 
     return NextResponse.json({
       content,
       corrections,
+      progress,
       usage: completion.usage,
     })
   } catch (error) {

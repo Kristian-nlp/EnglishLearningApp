@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { DifficultyLevel, Message, UserSettings } from '@/types'
 import { getTextToSpeech, getSpeechToText } from '@/lib/voice'
 import { assessDifficulty } from '@/lib/difficultyAdapter'
-import { saveSession, markTopicCompleted, trackGrammarError } from '@/lib/db'
+import { saveSession, markTopicCompleted, trackGrammarError, addLearnedWord, addDifficultPhrase } from '@/lib/db'
 import { topics } from '@/lib/topics'
 
 interface ConversationViewProps {
@@ -208,6 +208,14 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
         data.corrections.forEach((c: { original: string; corrected: string; rule: string }) => {
           trackGrammarError(c)
         })
+      }
+
+      // Persist vocabulary and difficult phrases returned by the API
+      if (data.progress?.learned?.length) {
+        data.progress.learned.forEach((word: string) => addLearnedWord(word))
+      }
+      if (data.progress?.difficult?.length) {
+        data.progress.difficult.forEach((phrase: string) => addDifficultPhrase(phrase))
       }
 
       const aiResponse: Message = {
