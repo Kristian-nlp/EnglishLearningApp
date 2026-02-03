@@ -307,7 +307,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
             <button
               onClick={isPaused ? handleResume : handlePause}
               aria-label={isPaused ? 'Resume conversation' : 'Pause conversation'}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+              className={`rounded-full px-5 py-2.5 text-sm font-medium transition-colors ${
                 isPaused
                   ? 'bg-sky-50 text-sky-600 hover:bg-sky-100'
                   : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
@@ -318,7 +318,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
             <button
               onClick={handleEndSession}
               aria-label="End session"
-              className="rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+              className="rounded-full bg-gray-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800"
             >
               End
             </button>

@@ -193,9 +193,9 @@ export function ProgressDashboard({ onBack, onStartTopic }: ProgressDashboardPro
                   key={topic.id}
                   onClick={() => onStartTopic(topic.name)}
                   aria-label={`Start conversation about ${topic.name}`}
-                  className="group rounded-xl border border-gray-200 p-4 text-left transition-all hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+                  className="group rounded-xl border border-gray-200 p-6 text-left transition-all hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
                 >
-                  <div className="mb-2 text-xl">{topic.icon}</div>
+                  <div className="mb-3 text-2xl">{topic.icon}</div>
                   <h4 className="text-sm font-medium text-gray-900 group-hover:text-sky-600">
                     {topic.name}
                   </h4>
