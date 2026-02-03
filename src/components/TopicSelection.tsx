@@ -81,7 +81,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
               Conversation Settings
             </h2>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
               {/* Difficulty Level */}
               <div>
                 <label className="mb-3 block text-sm text-gray-500">
@@ -167,7 +167,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
           </section>
 
           {/* Choose a Topic Section */}
-          <section className="mb-14">
+          <section className="mb-16">
             <h2 className="mb-6 text-xl font-semibold text-gray-900">
               Choose a Topic
             </h2>
