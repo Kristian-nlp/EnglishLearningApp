@@ -350,7 +350,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
                       : 'rounded-2xl rounded-bl-md border border-gray-100 bg-gray-50 px-5 py-3 text-gray-900'
                   }`}
                 >
-                  <p className="whitespace-pre-wrap text-center leading-relaxed">{message.content}</p>
+                  <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
                 </div>
               </div>
             ))}
