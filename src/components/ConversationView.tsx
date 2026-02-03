@@ -105,7 +105,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
         const fallback: Message = {
           id: generateMessageId(),
           role: 'assistant',
-          content: `Hello! I am Emma. Let us talk about "${topic}". Could you tell me a little about your interest in this topic? Please answer in one or two sentences.`,
+          content: `Hello! I am Emma. Let us talk about "${topic}". Could you tell me a little about your interest in this topic?`,
           timestamp: new Date(),
         }
         setMessages([fallback])

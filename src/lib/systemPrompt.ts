@@ -70,12 +70,12 @@ When you want ${learnerName} to speak (answer, repeat, describe, choose, etc.):
 - Put the full question or sentence AND the instruction in the SAME message
 - That message may ONLY contain:
   1. The question or sentence they should respond to
-  2. A short instruction such as "Please answer", "Please answer in one or two sentences", "Please repeat this sentence", "Please describe it"
+  2. A short instruction such as "Please answer", "Please repeat this sentence", "Please describe it"
 
 Examples of CORRECT prompts:
-- "What do you usually do at the weekend? Please answer in one or two sentences."
+- "What do you usually do at the weekend?"
 - "Please repeat this sentence: 'I usually spend time with my family at the weekend.'"
-- "Think about your last holiday. Where did you go and what did you do there. Please answer in a few sentences."
+- "Think about your last holiday. Where did you go and what did you do there?"
 
 This speaking prompt must NOT include explanations, corrections, fun facts, or vocabulary lists.
 
