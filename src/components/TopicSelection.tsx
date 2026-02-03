@@ -59,10 +59,10 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-white">
-      {/* Header */}
-      <header className="border-b border-gray-100">
-        <div className="mx-auto flex max-w-2xl items-center px-6 py-5">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-white px-6 py-12">
+      <div className="w-full max-w-2xl">
+        {/* Header */}
+        <div className="mb-12 flex items-center">
           <button
             onClick={onBack}
             aria-label="Go back"
@@ -74,11 +74,6 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
           </button>
           <h1 className="text-lg font-medium text-gray-900">Get Started</h1>
         </div>
-      </header>
-
-      {/* Content - vertically centered */}
-      <div className="flex flex-1 flex-col justify-center py-12">
-        <div className="mx-auto w-full max-w-2xl px-6">
 
           {/* Conversation Settings Section */}
           <section className="mb-14">
@@ -256,7 +251,6 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
             </div>
           </section>
 
-        </div>
       </div>
     </main>
   )
