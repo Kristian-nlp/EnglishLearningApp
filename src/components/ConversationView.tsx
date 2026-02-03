@@ -133,28 +133,36 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
     setTranscript('')
 
     sttRef.current.start(
-      (text, isFinal) => {
+      (text) => {
+        // Update transcript as user speaks (accumulates automatically)
         setTranscript(text)
-        if (isFinal) {
-          // Auto-stop after final result
-          handleStopListening(text)
-        }
       },
       (error) => {
         console.error('STT error:', error)
         setIsListening(false)
       },
-      accentLangMap[settings.accent]
+      accentLangMap[settings.accent],
+      // Auto-send when user stops speaking for 2 seconds
+      () => {
+        const finalText = sttRef.current?.getTranscript() || ''
+        if (finalText.trim()) {
+          sttRef.current?.stop()
+          setIsListening(false)
+          setTranscript('')
+          handleSendText(finalText)
+        }
+      },
+      3000 // 3 second silence threshold
     )
   }
 
   const handleStopListening = (finalTranscript?: string) => {
+    const textToSend = finalTranscript || sttRef.current?.getTranscript() || transcript
     if (sttRef.current) {
       sttRef.current.stop()
     }
     setIsListening(false)
 
-    const textToSend = finalTranscript || transcript
     if (textToSend.trim()) {
       handleSendText(textToSend)
     }
