@@ -1,6 +1,6 @@
 export type DifficultyLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1'
 
-export type EnglishAccent = 'american' | 'british' | 'australian'
+export type EnglishAccent = 'american' | 'british'
 
 export type VoiceGender = 'male' | 'female'
 

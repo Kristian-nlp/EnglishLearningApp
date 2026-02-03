@@ -31,7 +31,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
   const ttsRef = useRef(typeof window !== 'undefined' ? getOpenAITextToSpeech() : null)
   const sttRef = useRef(typeof window !== 'undefined' ? getSpeechToText() : null)
   const endSessionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const accentLangMap: Record<string, string> = { american: 'en-US', british: 'en-GB', australian: 'en-AU' }
+  const accentLangMap: Record<string, string> = { american: 'en-US', british: 'en-GB' }
 
   // Generate unique message ID
   const generateMessageId = () => {

@@ -143,7 +143,6 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
                   >
                     <option value="american">American English</option>
                     <option value="british">British English</option>
-                    <option value="australian">Australian English</option>
                   </select>
                 </div>
 
