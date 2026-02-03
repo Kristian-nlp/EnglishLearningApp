@@ -59,10 +59,10 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-white">
-      {/* Header */}
-      <header className="border-b border-gray-100">
-        <div className="mx-auto flex max-w-2xl items-center px-6 py-5">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-white px-6 py-12">
+      <div className="w-full max-w-2xl">
+        {/* Header */}
+        <div className="mb-12 flex items-center">
           <button
             onClick={onBack}
             aria-label="Go back"
@@ -74,19 +74,14 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
           </button>
           <h1 className="text-lg font-medium text-gray-900">Get Started</h1>
         </div>
-      </header>
-
-      {/* Content - vertically centered */}
-      <div className="flex flex-1 flex-col justify-center py-12">
-        <div className="mx-auto w-full max-w-2xl px-6">
 
           {/* Conversation Settings Section */}
-          <section className="mb-14">
-            <h2 className="mb-6 text-xl font-semibold text-gray-900">
+          <section className="mb-16">
+            <h2 className="mb-8 text-xl font-semibold text-gray-900">
               Conversation Settings
             </h2>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
               {/* Difficulty Level */}
               <div>
                 <label className="mb-3 block text-sm text-gray-500">
@@ -172,8 +167,8 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
           </section>
 
           {/* Choose a Topic Section */}
-          <section className="mb-14">
-            <h2 className="mb-6 text-xl font-semibold text-gray-900">
+          <section className="mb-16">
+            <h2 className="mb-8 text-xl font-semibold text-gray-900">
               Choose a Topic
             </h2>
 
@@ -183,7 +178,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
                   key={topic.id}
                   onClick={() => handleTopicSelect(topic.name)}
                   aria-label={`Start conversation about ${topic.name}`}
-                  className="group rounded-xl border-2 border-gray-200 px-6 py-5 text-left transition-all hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+                  className="group rounded-xl border-2 border-gray-200 p-8 text-left transition-all hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
                 >
                   <div className="mb-3 text-2xl">{topic.icon}</div>
                   <h3 className="mb-2 font-medium text-gray-900 group-hover:text-sky-600">
@@ -200,7 +195,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
                 {savedCustomTopics.map((topic) => (
                   <div
                     key={topic}
-                    className="group flex items-center justify-between rounded-xl border-2 border-sky-200 bg-sky-50 px-6 py-5 transition-all hover:border-sky-300"
+                    className="group flex items-center justify-between rounded-xl border-2 border-sky-200 bg-sky-50 p-8 transition-all hover:border-sky-300"
                   >
                     <button
                       onClick={() => handleTopicSelect(topic)}
@@ -227,7 +222,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
 
           {/* Create Your Own Section */}
           <section>
-            <h2 className="mb-6 text-xl font-semibold text-gray-900">
+            <h2 className="mb-8 text-xl font-semibold text-gray-900">
               Create Your Own
             </h2>
             <div className="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 transition-colors focus-within:border-sky-500 focus-within:bg-white">
@@ -256,7 +251,6 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
             </div>
           </section>
 
-        </div>
       </div>
     </main>
   )

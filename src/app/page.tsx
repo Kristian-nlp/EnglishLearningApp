@@ -72,16 +72,16 @@ export default function Home() {
           </p>
 
           {/* CTAs */}
-          <div className="mt-10 flex items-center justify-center gap-4">
+          <div className="mt-12 flex items-center justify-center gap-4">
             <button
               onClick={() => setStarted(true)}
-              className="rounded-full bg-gray-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+              className="rounded-full bg-gray-900 px-8 py-4 text-sm font-medium text-white transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
             >
               Start practicing
             </button>
             <button
               onClick={() => setShowDashboard(true)}
-              className="rounded-full border border-gray-200 px-6 py-3 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+              className="rounded-full border border-gray-200 px-8 py-4 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
             >
               View progress
             </button>
