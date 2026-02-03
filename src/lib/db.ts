@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   SETTINGS: 'english_app_settings',
   PROGRESS: 'english_app_progress',
   SESSIONS: 'english_app_sessions',
+  CUSTOM_TOPICS: 'english_app_custom_topics',
 }
 
 // User settings
@@ -95,6 +96,8 @@ function getDefaultProgress(): UserProgress {
     learnedWords: [],
     sessionsCompleted: 0,
     lastSessionDate: null,
+    topicsCompleted: [],
+    vocabularyProgress: {},
   }
 }
 
@@ -151,6 +154,62 @@ export function saveSession(session: {
   const progress = getUserProgress()
   progress.sessionsCompleted = sessions.length
   progress.lastSessionDate = new Date()
+  saveUserProgress(progress)
+}
+
+// Custom topics management
+export function getCustomTopics(): string[] {
+  if (typeof window === 'undefined') return []
+  const stored = localStorage.getItem(STORAGE_KEYS.CUSTOM_TOPICS)
+  if (stored) {
+    try {
+      return JSON.parse(stored)
+    } catch (error) {
+      console.error('Failed to parse custom topics:', error)
+      localStorage.removeItem(STORAGE_KEYS.CUSTOM_TOPICS)
+      return []
+    }
+  }
+  return []
+}
+
+export function saveCustomTopic(topic: string): void {
+  if (typeof window === 'undefined') return
+  const topics = getCustomTopics()
+  if (!topics.includes(topic)) {
+    topics.push(topic)
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_TOPICS, JSON.stringify(topics))
+  }
+}
+
+export function removeCustomTopic(topic: string): void {
+  if (typeof window === 'undefined') return
+  const topics = getCustomTopics()
+  const filtered = topics.filter((t) => t !== topic)
+  localStorage.setItem(STORAGE_KEYS.CUSTOM_TOPICS, JSON.stringify(filtered))
+}
+
+// Track topic completion
+export function markTopicCompleted(topicId: string): void {
+  const progress = getUserProgress()
+  if (!progress.topicsCompleted.includes(topicId)) {
+    progress.topicsCompleted.push(topicId)
+    saveUserProgress(progress)
+  }
+}
+
+// Track vocabulary practice
+export function updateVocabularyProgress(word: string): void {
+  const progress = getUserProgress()
+  if (progress.vocabularyProgress[word]) {
+    progress.vocabularyProgress[word].practiced++
+    progress.vocabularyProgress[word].lastPracticed = new Date()
+  } else {
+    progress.vocabularyProgress[word] = {
+      practiced: 1,
+      lastPracticed: new Date(),
+    }
+  }
   saveUserProgress(progress)
 }
 

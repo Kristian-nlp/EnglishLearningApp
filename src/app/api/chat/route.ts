@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { buildSystemPrompt } from '@/lib/systemPrompt'
 import { DifficultyLevel, Message } from '@/types'
+import { getRandomVocabulary } from '@/lib/vocabulary'
+import { topics } from '@/lib/topics'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -25,8 +27,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Build system prompt
-    const systemPrompt = buildSystemPrompt(topic, difficultyLevel)
+    // Find topic ID from topic name
+    const topicData = topics.find(t => t.name === topic)
+    const topicId = topicData?.id || ''
+
+    // Get vocabulary suggestions for this topic
+    const vocabulary = topicId ? getRandomVocabulary(topicId, difficultyLevel, 4) : []
+
+    // Build system prompt with vocabulary
+    const systemPrompt = buildSystemPrompt(topic, difficultyLevel, 'the learner', vocabulary)
 
     // Convert messages to OpenAI format
     const openaiMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [

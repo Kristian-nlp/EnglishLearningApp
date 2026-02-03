@@ -1,4 +1,4 @@
-import { DifficultyLevel } from '@/types'
+import { DifficultyLevel, VocabularyItem } from '@/types'
 
 // Difficulty level descriptions for adaptive responses
 const difficultyDescriptions: Record<DifficultyLevel, string> = {
@@ -12,9 +12,22 @@ const difficultyDescriptions: Record<DifficultyLevel, string> = {
 export function buildSystemPrompt(
   topic: string,
   difficultyLevel: DifficultyLevel,
-  learnerName: string = 'the learner'
+  learnerName: string = 'the learner',
+  suggestedVocabulary?: VocabularyItem[]
 ): string {
   const levelDescription = difficultyDescriptions[difficultyLevel]
+
+  let vocabularySection = ''
+  if (suggestedVocabulary && suggestedVocabulary.length > 0) {
+    const vocabList = suggestedVocabulary
+      .map(v => `  - ${v.word} (${v.germanTranslation})${v.example ? ` - Example: "${v.example}"` : ''}`)
+      .join('\n')
+    vocabularySection = `\n\n## Topic-Specific Vocabulary to Introduce
+These are useful words and phrases for this topic. Introduce them naturally during the conversation when relevant:
+${vocabList}
+
+Remember to introduce these words gradually, not all at once. Use them in context and encourage the learner to practice using them.`
+  }
 
   return `You are a warm, friendly English conversation partner helping a German speaker practice English. Your name is Emma.
 
@@ -104,5 +117,5 @@ Structure your responses clearly:
 3. Third: Optional vocabulary suggestions or fun fact (occasionally, not every turn)
 4. Finally: Your next question/prompt following the turn-based speaking rule
 
-Remember: Keep the conversation natural and flowing. Your goal is to help ${learnerName} practice speaking English in a supportive environment.`
+Remember: Keep the conversation natural and flowing. Your goal is to help ${learnerName} practice speaking English in a supportive environment.${vocabularySection}`
 }

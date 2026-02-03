@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { topics } from '@/lib/topics'
 import { DifficultyLevel, EnglishAccent, UserSettings } from '@/types'
+import { saveCustomTopic } from '@/lib/db'
 
 interface TopicSelectionProps {
   onSelectTopic: (topic: string, settings: UserSettings) => void
@@ -29,7 +30,9 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
 
   const handleCustomTopicSubmit = () => {
     if (customTopic.trim()) {
-      onSelectTopic(customTopic.trim(), getSettings())
+      const topic = customTopic.trim()
+      saveCustomTopic(topic)
+      onSelectTopic(topic, getSettings())
     }
   }
 

@@ -7,6 +7,19 @@ export interface Topic {
   name: string
   description: string
   icon: string
+  isCustom?: boolean
+}
+
+export interface VocabularyItem {
+  word: string
+  germanTranslation: string
+  difficultyLevel: DifficultyLevel
+  example?: string
+}
+
+export interface TopicVocabulary {
+  topicId: string
+  vocabulary: VocabularyItem[]
 }
 
 export interface Message {
@@ -29,6 +42,8 @@ export interface UserProgress {
   learnedWords: string[]
   sessionsCompleted: number
   lastSessionDate: Date | null
+  topicsCompleted: string[]
+  vocabularyProgress: { [word: string]: { practiced: number; lastPracticed: Date } }
 }
 
 export interface ConversationSession {
