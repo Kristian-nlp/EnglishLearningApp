@@ -76,8 +76,8 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
         </div>
 
           {/* Conversation Settings Section */}
-          <section className="mb-14">
-            <h2 className="mb-6 text-xl font-semibold text-gray-900">
+          <section className="mb-16">
+            <h2 className="mb-8 text-xl font-semibold text-gray-900">
               Conversation Settings
             </h2>
 
@@ -168,7 +168,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
 
           {/* Choose a Topic Section */}
           <section className="mb-16">
-            <h2 className="mb-6 text-xl font-semibold text-gray-900">
+            <h2 className="mb-8 text-xl font-semibold text-gray-900">
               Choose a Topic
             </h2>
 
@@ -222,7 +222,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
 
           {/* Create Your Own Section */}
           <section>
-            <h2 className="mb-6 text-xl font-semibold text-gray-900">
+            <h2 className="mb-8 text-xl font-semibold text-gray-900">
               Create Your Own
             </h2>
             <div className="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 transition-colors focus-within:border-sky-500 focus-within:bg-white">
