@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Message, UserSettings } from '@/types'
+import { DifficultyLevel, Message, UserSettings } from '@/types'
 import { getTextToSpeech, getSpeechToText } from '@/lib/voice'
+import { assessDifficulty } from '@/lib/difficultyAdapter'
 
 interface ConversationViewProps {
   topic: string
@@ -17,6 +18,8 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [transcript, setTranscript] = useState('')
+  const [effectiveLevel, setEffectiveLevel] = useState<DifficultyLevel>(settings.difficultyLevel)
+  const [difficultySignal, setDifficultySignal] = useState<'confident' | 'struggling' | 'neutral'>('neutral')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesRef = useRef<Message[]>([])
   const messageIdCounter = useRef(0)
@@ -32,6 +35,13 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
   useEffect(() => {
     messagesRef.current = messages
   }, [messages])
+
+  // Re-assess difficulty whenever messages change
+  useEffect(() => {
+    const { effectiveLevel: newLevel, signal } = assessDifficulty(messages, settings.difficultyLevel)
+    setEffectiveLevel(newLevel)
+    setDifficultySignal(signal)
+  }, [messages, settings.difficultyLevel])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -146,7 +156,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
         body: JSON.stringify({
           messages: [...messagesRef.current, userMessage],
           topic,
-          difficultyLevel: settings.difficultyLevel,
+          difficultyLevel: effectiveLevel,
         }),
       })
 
@@ -177,16 +187,19 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
     } finally {
       setIsLoading(false)
     }
-  }, [speakText, onEndSession, topic, settings.difficultyLevel])
+  }, [speakText, onEndSession, topic, effectiveLevel])
 
   return (
     <main className="flex min-h-screen flex-col bg-white">
       {/* Header */}
       <header className="border-b border-gray-200 bg-white px-6 py-4">
         <div className="mx-auto flex max-w-4xl items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">Conversation</h1>
-            <p className="text-sm text-gray-600">Topic: {topic}</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">Conversation</h1>
+              <p className="text-sm text-gray-600">Topic: {topic}</p>
+            </div>
+            <DifficultyBadge level={effectiveLevel} signal={difficultySignal} />
           </div>
           <div className="flex gap-3">
             <button
@@ -313,5 +326,26 @@ function MicrophoneIcon({ isListening }: { isListening: boolean }) {
         d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
       />
     </svg>
+  )
+}
+
+function DifficultyBadge({
+  level,
+  signal,
+}: {
+  level: DifficultyLevel
+  signal: 'confident' | 'struggling' | 'neutral'
+}) {
+  const bgColor =
+    signal === 'confident' ? 'bg-green-100 text-green-800' :
+    signal === 'struggling' ? 'bg-amber-100 text-amber-800' :
+    'bg-gray-100 text-gray-700'
+
+  const arrow = signal === 'confident' ? ' ↑' : signal === 'struggling' ? ' ↓' : ''
+
+  return (
+    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${bgColor}`}>
+      {level}{arrow}
+    </span>
   )
 }
