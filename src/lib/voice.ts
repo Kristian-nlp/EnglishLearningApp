@@ -1,5 +1,5 @@
 // Voice utilities for Text-to-Speech and Speech-to-Text
-// Uses Web Speech API as primary, with OpenAI as fallback
+// Uses OpenAI TTS as primary (natural voices), with Web Speech API as fallback
 
 import { EnglishAccent, VoiceGender } from '@/types'
 
@@ -159,6 +159,75 @@ export class TextToSpeech {
   }
 }
 
+// OpenAI Text-to-Speech for natural-sounding voices
+export class OpenAITextToSpeech {
+  private currentAudio: HTMLAudioElement | null = null
+  private isSpeakingFlag = false
+
+  async speak(text: string, _accent: EnglishAccent = 'american', speed: number = 1.0, gender: VoiceGender = 'female'): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Stop any current speech
+        this.stop()
+
+        // Fetch audio from our API
+        const response = await fetch('/api/tts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text, gender, speed }),
+        })
+
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || 'Failed to generate speech')
+        }
+
+        // Get audio blob and create URL
+        const audioBlob = await response.blob()
+        const audioUrl = URL.createObjectURL(audioBlob)
+
+        // Create and play audio
+        this.currentAudio = new Audio(audioUrl)
+        this.isSpeakingFlag = true
+
+        this.currentAudio.onended = () => {
+          this.isSpeakingFlag = false
+          URL.revokeObjectURL(audioUrl)
+          this.currentAudio = null
+          resolve()
+        }
+
+        this.currentAudio.onerror = (event) => {
+          this.isSpeakingFlag = false
+          URL.revokeObjectURL(audioUrl)
+          this.currentAudio = null
+          reject(new Error(`Audio playback error: ${event}`))
+        }
+
+        await this.currentAudio.play()
+      } catch (error) {
+        this.isSpeakingFlag = false
+        reject(error)
+      }
+    })
+  }
+
+  stop(): void {
+    if (this.currentAudio) {
+      this.currentAudio.pause()
+      this.currentAudio.currentTime = 0
+      this.currentAudio = null
+    }
+    this.isSpeakingFlag = false
+  }
+
+  isSpeaking(): boolean {
+    return this.isSpeakingFlag
+  }
+}
+
 // Speech-to-Text using Web Speech API
 export class SpeechToText {
   private recognition: SpeechRecognitionInterface | null = null
@@ -265,14 +334,24 @@ export class SpeechToText {
 }
 
 // Singleton instances
-let ttsInstance: TextToSpeech | null = null
+let openaiTtsInstance: OpenAITextToSpeech | null = null
+let webTtsInstance: TextToSpeech | null = null
 let sttInstance: SpeechToText | null = null
 
-export function getTextToSpeech(): TextToSpeech {
-  if (!ttsInstance) {
-    ttsInstance = new TextToSpeech()
+// Get OpenAI TTS (natural voices) - preferred
+export function getOpenAITextToSpeech(): OpenAITextToSpeech {
+  if (!openaiTtsInstance) {
+    openaiTtsInstance = new OpenAITextToSpeech()
   }
-  return ttsInstance
+  return openaiTtsInstance
+}
+
+// Get Web Speech API TTS (fallback)
+export function getTextToSpeech(): TextToSpeech {
+  if (!webTtsInstance) {
+    webTtsInstance = new TextToSpeech()
+  }
+  return webTtsInstance
 }
 
 export function getSpeechToText(): SpeechToText {

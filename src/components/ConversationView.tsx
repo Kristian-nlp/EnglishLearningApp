@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { DifficultyLevel, Message, UserSettings } from '@/types'
-import { getTextToSpeech, getSpeechToText } from '@/lib/voice'
+import { getOpenAITextToSpeech, getSpeechToText } from '@/lib/voice'
 import { assessDifficulty } from '@/lib/difficultyAdapter'
 import { saveSession, markTopicCompleted, trackGrammarError, addLearnedWord, addDifficultPhrase } from '@/lib/db'
 import { topics } from '@/lib/topics'
@@ -28,7 +28,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
   const messageIdCounter = useRef(0)
   const sessionIdRef = useRef(`session-${Date.now()}`)
   const sessionStartRef = useRef(new Date())
-  const ttsRef = useRef(typeof window !== 'undefined' ? getTextToSpeech() : null)
+  const ttsRef = useRef(typeof window !== 'undefined' ? getOpenAITextToSpeech() : null)
   const sttRef = useRef(typeof window !== 'undefined' ? getSpeechToText() : null)
   const endSessionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const accentLangMap: Record<string, string> = { american: 'en-US', british: 'en-GB', australian: 'en-AU' }

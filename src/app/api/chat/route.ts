@@ -5,9 +5,17 @@ import { DifficultyLevel, Message } from '@/types'
 import { getRandomVocabulary } from '@/lib/vocabulary'
 import { topics } from '@/lib/topics'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Lazy initialization to avoid build-time errors
+let openai: OpenAI | null = null
+
+function getOpenAI(): OpenAI {
+  if (!openai) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
+  }
+  return openai
+}
 
 interface ChatRequest {
   messages: Message[]
@@ -47,7 +55,7 @@ export async function POST(request: NextRequest) {
     ]
 
     // Call OpenAI API
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: openaiMessages,
       temperature: 0.7,
