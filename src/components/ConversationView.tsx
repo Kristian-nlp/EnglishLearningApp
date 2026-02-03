@@ -63,13 +63,13 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
     if (!ttsRef.current) return
     setIsSpeaking(true)
     try {
-      await ttsRef.current.speak(text, settings.accent, settings.speakingSpeed)
+      await ttsRef.current.speak(text, settings.accent, settings.speakingSpeed, settings.voiceGender)
     } catch (error) {
       console.error('TTS error:', error)
     } finally {
       setIsSpeaking(false)
     }
-  }, [settings.accent, settings.speakingSpeed])
+  }, [settings.accent, settings.speakingSpeed, settings.voiceGender])
 
   // Fetch AI-generated greeting on mount
   useEffect(() => {
@@ -105,7 +105,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
         const fallback: Message = {
           id: generateMessageId(),
           role: 'assistant',
-          content: `Hello! I am Emma. Let us talk about "${topic}". Could you tell me a little about your interest in this topic?`,
+          content: `Hello! Let us talk about "${topic}". Could you tell me a little about your interest in this topic?`,
           timestamp: new Date(),
         }
         setMessages([fallback])

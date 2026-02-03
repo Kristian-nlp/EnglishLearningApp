@@ -10,6 +10,7 @@ const defaultSettings: UserSettings = {
   difficultyLevel: 'A2',
   speakingSpeed: 1.0,
   accent: 'american',
+  voiceGender: 'female',
 }
 
 export default function Home() {

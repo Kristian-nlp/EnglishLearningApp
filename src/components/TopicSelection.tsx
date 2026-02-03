@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { topics } from '@/lib/topics'
-import { DifficultyLevel, EnglishAccent, UserSettings } from '@/types'
+import { DifficultyLevel, EnglishAccent, UserSettings, VoiceGender } from '@/types'
 import { saveCustomTopic, getCustomTopics, removeCustomTopic, getUserSettings, saveUserSettings } from '@/lib/db'
 
 interface TopicSelectionProps {
@@ -14,6 +14,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('A2')
   const [speed, setSpeed] = useState(1.0)
   const [accent, setAccent] = useState<EnglishAccent>('american')
+  const [voiceGender, setVoiceGender] = useState<VoiceGender>('female')
   const [customTopic, setCustomTopic] = useState('')
   const [savedCustomTopics, setSavedCustomTopics] = useState<string[]>([])
 
@@ -25,6 +26,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
     setDifficulty(saved.difficultyLevel)
     setSpeed(saved.speakingSpeed)
     setAccent(saved.accent)
+    setVoiceGender(saved.voiceGender || 'female')
     setSavedCustomTopics(getCustomTopics())
   }, [])
 
@@ -32,6 +34,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
     difficultyLevel: difficulty,
     speakingSpeed: speed,
     accent: accent,
+    voiceGender: voiceGender,
   })
 
   const handleTopicSelect = (topic: string) => {
@@ -69,7 +72,7 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
         <h1 className="mb-8 text-3xl font-bold text-gray-900">Choose Your Settings</h1>
 
         {/* Settings Section */}
-        <div className="mb-12 grid gap-6 md:grid-cols-3">
+        <div className="mb-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {/* Difficulty Level */}
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -130,6 +133,22 @@ export function TopicSelection({ onSelectTopic, onBack }: TopicSelectionProps) {
               <option value="american">American</option>
               <option value="british">British</option>
               <option value="australian">Australian</option>
+            </select>
+          </div>
+
+          {/* Voice Gender */}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Voice
+            </label>
+            <select
+              value={voiceGender}
+              onChange={(e) => setVoiceGender(e.target.value as VoiceGender)}
+              aria-label="Voice gender"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="female">Female</option>
+              <option value="male">Male</option>
             </select>
           </div>
         </div>
