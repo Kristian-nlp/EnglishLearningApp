@@ -66,7 +66,7 @@ export function ProgressDashboard({ onBack, onStartTopic }: ProgressDashboardPro
   return (
     <main className="min-h-screen bg-white p-8">
       <div className="mx-auto max-w-3xl">
-        <button onClick={onBack} className="mb-6 text-gray-600 hover:text-gray-900">
+        <button onClick={onBack} aria-label="Go back" className="mb-6 text-gray-600 hover:text-gray-900">
           ← Back
         </button>
 
@@ -136,7 +136,8 @@ export function ProgressDashboard({ onBack, onStartTopic }: ProgressDashboardPro
                 <button
                   key={topic.id}
                   onClick={() => onStartTopic(topic.name)}
-                  className="rounded-lg border border-gray-200 p-3 text-left transition-all hover:border-blue-500 hover:shadow-md"
+                  aria-label={`Start conversation about ${topic.name}`}
+                  className="rounded-lg border border-gray-200 p-3 text-left transition-all hover:border-blue-500 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   <div className="mb-1 text-lg">{topic.icon}</div>
                   <h4 className="text-sm font-semibold text-gray-900">{topic.name}</h4>

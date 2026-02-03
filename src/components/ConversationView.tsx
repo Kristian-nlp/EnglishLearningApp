@@ -22,6 +22,7 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
   const [transcript, setTranscript] = useState('')
   const [effectiveLevel, setEffectiveLevel] = useState<DifficultyLevel>(settings.difficultyLevel)
   const [difficultySignal, setDifficultySignal] = useState<'confident' | 'struggling' | 'neutral'>('neutral')
+  const [isPaused, setIsPaused] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesRef = useRef<Message[]>([])
   const messageIdCounter = useRef(0)
@@ -123,6 +124,19 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
     }
   }
 
+  const handlePause = () => {
+    if (ttsRef.current) ttsRef.current.stop()
+    if (sttRef.current) sttRef.current.stop()
+    setIsListening(false)
+    setIsPaused(true)
+  }
+
+  const handleResume = () => {
+    setIsPaused(false)
+    const lastAssistant = [...messagesRef.current].reverse().find((m) => m.role === 'assistant')
+    if (lastAssistant) speakText(lastAssistant.content)
+  }
+
   // Persist session data then hand off to parent
   const handleEndSession = useCallback(() => {
     saveSession({
@@ -222,12 +236,25 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
           <div className="flex gap-3">
             <button
               onClick={onChangeTopic}
+              aria-label="Change topic"
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Change Topic
             </button>
             <button
+              onClick={isPaused ? handleResume : handlePause}
+              aria-label={isPaused ? 'Resume conversation' : 'Pause conversation'}
+              className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+                isPaused
+                  ? 'border-green-500 bg-green-50 text-green-700 hover:bg-green-100'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              {isPaused ? 'Resume' : 'Pause'}
+            </button>
+            <button
               onClick={handleEndSession}
+              aria-label="End session"
               className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
             >
               End Session
@@ -256,14 +283,14 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
             </div>
           ))}
           {isLoading && (
-            <div className="flex justify-start">
+            <div className="flex justify-start" role="status" aria-live="polite">
               <div className="rounded-lg bg-gray-100 px-4 py-3 text-gray-500">
                 <span className="animate-pulse">Thinking...</span>
               </div>
             </div>
           )}
           {isSpeaking && !isLoading && (
-            <div className="flex justify-start">
+            <div className="flex justify-start" role="status" aria-live="polite">
               <div className="rounded-lg bg-gray-100 px-4 py-3 text-gray-500">
                 <span className="animate-pulse">Speaking...</span>
               </div>
@@ -276,9 +303,16 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
       {/* Input Area */}
       <div className="border-t border-gray-200 bg-white px-6 py-4">
         <div className="mx-auto max-w-4xl">
+          {/* Paused banner */}
+          {isPaused && (
+            <div className="mb-3 rounded-lg bg-amber-50 p-3 text-center text-amber-800" role="status" aria-live="polite">
+              <p className="text-sm font-medium">Session paused. Press Resume to continue.</p>
+            </div>
+          )}
+
           {/* Live transcript display */}
           {isListening && (
-            <div className="mb-3 rounded-lg bg-blue-50 p-3 text-blue-800">
+            <div className="mb-3 rounded-lg bg-blue-50 p-3 text-blue-800" role="status" aria-live="polite">
               <p className="text-sm font-medium">Listening...</p>
               {transcript && <p className="mt-1">{transcript}</p>}
             </div>
@@ -288,12 +322,15 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
             {/* Microphone Button */}
             <button
               onClick={isListening ? () => handleStopListening() : handleStartListening}
+              disabled={isPaused}
+              aria-label={isListening ? 'Stop recording' : 'Start recording'}
               className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${
-                isListening
-                  ? 'bg-red-500 text-white hover:bg-red-600'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                isPaused
+                  ? 'cursor-not-allowed bg-gray-50 text-gray-400'
+                  : isListening
+                    ? 'bg-red-500 text-white hover:bg-red-600'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
-              title={isListening ? 'Stop recording' : 'Start recording'}
             >
               <MicrophoneIcon isListening={isListening} />
             </button>
@@ -303,16 +340,18 @@ export function ConversationView({ topic, settings, onEndSession, onChangeTopic 
               type="text"
               value={transcript}
               onChange={(e) => setTranscript(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSendText(transcript)}
-              placeholder="Type your message or click the microphone to speak..."
-              className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              disabled={isListening || isLoading}
+              onKeyDown={(e) => e.key === 'Enter' && !isLoading && !isPaused && handleSendText(transcript)}
+              placeholder={isPaused ? 'Session is paused...' : 'Type your message or click the microphone to speak...'}
+              aria-label="Message input"
+              className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50"
+              disabled={isListening || isLoading || isPaused}
             />
 
             {/* Send Button */}
             <button
               onClick={() => handleSendText(transcript)}
-              disabled={!transcript.trim() || isListening || isLoading}
+              disabled={!transcript.trim() || isListening || isLoading || isPaused}
+              aria-label="Send message"
               className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
               {isLoading ? '...' : 'Send'}
