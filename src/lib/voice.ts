@@ -162,6 +162,7 @@ export class TextToSpeech {
 export class OpenAITextToSpeech {
   private currentAudio: HTMLAudioElement | null = null
   private isSpeakingFlag = false
+  private currentAudioUrl: string | null = null
 
   async speak(text: string, accent: EnglishAccent = 'american', speed: number = 1.0, gender: VoiceGender = 'female'): Promise<void> {
     return new Promise(async (resolve, reject) => {
@@ -169,7 +170,12 @@ export class OpenAITextToSpeech {
         // Stop any current speech
         this.stop()
 
-        // Fetch audio from our API
+        // Pre-create audio element for faster playback start
+        this.currentAudio = new Audio()
+        this.currentAudio.preload = 'auto'
+        this.isSpeakingFlag = true
+
+        // Fetch audio from our API (now streaming)
         const response = await fetch('/api/tts', {
           method: 'POST',
           headers: {
@@ -179,47 +185,60 @@ export class OpenAITextToSpeech {
         })
 
         if (!response.ok) {
+          this.isSpeakingFlag = false
           const error = await response.json()
           throw new Error(error.error || 'Failed to generate speech')
         }
 
-        // Get audio blob and create URL
+        // Read the streamed response and create blob
         const audioBlob = await response.blob()
-        const audioUrl = URL.createObjectURL(audioBlob)
+        this.currentAudioUrl = URL.createObjectURL(audioBlob)
 
-        // Create and play audio
-        this.currentAudio = new Audio(audioUrl)
-        this.isSpeakingFlag = true
+        // Set up audio element
+        this.currentAudio.src = this.currentAudioUrl
 
         this.currentAudio.onended = () => {
-          this.isSpeakingFlag = false
-          URL.revokeObjectURL(audioUrl)
-          this.currentAudio = null
+          this.cleanup()
           resolve()
         }
 
         this.currentAudio.onerror = (event) => {
-          this.isSpeakingFlag = false
-          URL.revokeObjectURL(audioUrl)
-          this.currentAudio = null
+          this.cleanup()
           reject(new Error(`Audio playback error: ${event}`))
         }
 
-        await this.currentAudio.play()
+        // Start playing as soon as enough data is buffered
+        this.currentAudio.oncanplay = () => {
+          this.currentAudio?.play().catch((err) => {
+            this.cleanup()
+            reject(err)
+          })
+        }
+
+        // Fallback: try to play immediately if oncanplay doesn't fire
+        this.currentAudio.load()
       } catch (error) {
-        this.isSpeakingFlag = false
+        this.cleanup()
         reject(error)
       }
     })
+  }
+
+  private cleanup(): void {
+    this.isSpeakingFlag = false
+    if (this.currentAudioUrl) {
+      URL.revokeObjectURL(this.currentAudioUrl)
+      this.currentAudioUrl = null
+    }
+    this.currentAudio = null
   }
 
   stop(): void {
     if (this.currentAudio) {
       this.currentAudio.pause()
       this.currentAudio.currentTime = 0
-      this.currentAudio = null
     }
-    this.isSpeakingFlag = false
+    this.cleanup()
   }
 
   isSpeaking(): boolean {
