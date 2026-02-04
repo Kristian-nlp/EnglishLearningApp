@@ -72,14 +72,12 @@ export async function POST(request: NextRequest) {
       speed: clampedSpeed,
     })
 
-    // Get the audio data as an ArrayBuffer
-    const audioBuffer = await mp3.arrayBuffer()
-
-    // Return the audio as a response
-    return new NextResponse(audioBuffer, {
+    // Stream the audio response directly without buffering
+    // This reduces latency by sending bytes as soon as OpenAI returns them
+    return new NextResponse(mp3.body, {
       headers: {
         'Content-Type': 'audio/mpeg',
-        'Content-Length': audioBuffer.byteLength.toString(),
+        'Transfer-Encoding': 'chunked',
       },
     })
   } catch (error) {
