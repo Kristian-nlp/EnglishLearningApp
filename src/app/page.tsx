@@ -93,7 +93,7 @@ export default function Home() {
               This is a prototype.
             </p>
             <p>
-              This app is built for friends and family. You&apos;ve probably found it through my website or I&apos;ve shared a link with you directly. If it&apos;s not working well for you, if it feels clunky or frustrating, I&apos;d rather you stop using it than stick with something that annoys you.
+              This app is a personal project built primarily for friends and family. You&apos;ve likely found it through my website or a direct link I shared. Please note this is a working prototype—the UI and features are still in development.
             </p>
             <button
               onClick={() => {
